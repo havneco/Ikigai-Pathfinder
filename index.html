@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO & Social Sharing (Open Graph) -->
+    <title>Ikigai Pathfinder | Discover Your Purpose with AI</title>
+    <meta name="description" content="A sophisticated AI-powered application to discover your Ikigai (Reason for Being) by synthesizing what you love, what you are good at, what the world needs, and what you can be paid for." />
+    
+    <!-- Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ikigai-pathfinder.vercel.app/" />
+    <meta property="og:title" content="Ikigai Pathfinder | Discover Your Purpose" />
+    <meta property="og:description" content="Combine ancient wisdom with modern AI to find your true calling. Analyze your skills, passions, and market trends in seconds." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1516961642265-531546e84af2?q=80&w=1200&auto=format&fit=crop" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Ikigai Pathfinder | Discover Your Purpose" />
+    <meta property="twitter:description" content="Combine ancient wisdom with modern AI to find your true calling. Analyze your skills, passions, and market trends in seconds." />
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1516961642265-531546e84af2?q=80&w=1200&auto=format&fit=crop" />
+
+    <!-- Tailwind CSS (Inlined for reliability) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+            },
+            colors: {
+              love: '#FF6B6B',
+              good: '#4ECDC4',
+              world: '#45B7D1',
+              paid: '#F7B731',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      }
+      /* Stripe Buy Button Customization container */
+      stripe-buy-button {
+        display: block;
+        width: 100%;
+      }
+      
+      /* Custom Scrollbar for widgets */
+      .widget-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .widget-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .widget-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 20px;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.1",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.45.0",
+    "canvas-confetti": "https://cdn.skypack.dev/canvas-confetti@1.6.0",
+    "react-grid-layout": "https://esm.sh/react-grid-layout@1.4.4?external=react,react-dom",
+    "lodash": "https://esm.sh/lodash@4.17.21"
+  }
+}
+</script>
+<!-- Stripe Buy Button Script -->
+<script async src="https://js.stripe.com/v3/buy-button.js"></script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
