@@ -1,9 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { IkigaiResult, User, MarketOpportunity, IkigaiState } from '../types';
 import VennDiagram from './VennDiagram';
-import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign } from 'lucide-react';
+import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight } from 'lucide-react';
 import { chatWithCopilot } from '../services/geminiService';
+import MarketCard from './MarketCard';
+import ReactMarkdown from 'react-markdown';
 
 // Wrapper for Stripe Button
 const StripeBuyButton = (props: any) => React.createElement('stripe-buy-button', props);
@@ -80,67 +81,145 @@ export const VennWidget = ({ result }: { result: IkigaiResult }) => (
   </div>
 );
 
-// 3. Market Idea Card (Deep IdeaBrowser Style)
-const MarketCard = ({ idea, isPro, onUpgrade }: { idea: MarketOpportunity, isPro: boolean, onUpgrade: () => void }) => {
-  const [copied, setCopied] = useState<string | null>(null);
-
-  <p className="text-[10px] text-slate-400">{action.tool}</p>
-                      </div >
-  {
-    isPro?(
-                          <button onClick = {() => copyToClipboard(action.prompt, `p-${i}`)} className = "text-slate-400 hover:text-indigo-600" >
-  { copied === `p-${i}` ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                          </button >
-                      ) : <Lock size={12} className="text-gray-300" />}
-                   </div >
-                ))}
-             </div >
-  {!isPro && (
-    <button onClick={onUpgrade} className="w-full mt-2 text-xs bg-slate-900 text-white py-1.5 rounded-lg font-bold">Unlock Prompts</button>
-  )}
-          </div >
-       </div >
-    </div >
-  );
-};
+const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <div>
+    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{title}</h4>
+    {children}
+  </div>
+);
 
 // 4. Market Widget
-export const MarketWidget = ({ result, isPro, onUpgrade }: { result: IkigaiResult, isPro: boolean, onUpgrade: () => void }) => {
-  const [index, setIndex] = useState(0);
-  const ideas = result.marketIdeas || [];
+export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void }> = ({ result, isPro, onUpgrade }) => {
+  const [selectedIdea, setSelectedIdea] = useState<MarketOpportunity | null>(null);
 
-  if (ideas.length === 0) return (
-    <div className="h-full bg-white rounded-3xl shadow-lg border border-slate-100 p-6 flex items-center justify-center text-center">
-      <div>
-        <Search size={32} className="text-slate-300 mx-auto mb-2" />
-        <p className="text-slate-400 text-sm">No market validation found.</p>
-      </div>
-    </div>
-  );
-
-  const currentIdea = ideas[index];
-
-  return (
-    <div className="h-full flex flex-col bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
-      <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Market Opportunities</h3>
-        <div className="flex gap-1">
-          {ideas.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              className={`w-2 h-2 rounded-full transition-all ${i === index ? 'bg-indigo-600 w-4' : 'bg-slate-300'}`}
-            />
-          ))}
+  if (!isPro) {
+    return (
+      <div className="h-full bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col items-center justify-center text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-indigo-50/50"></div>
+        <div className="relative z-10 max-w-md">
+          <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <Lock size={32} />
+          </div>
+          <h3 className="text-2xl font-serif font-bold text-slate-900 mb-3">Unlock Market Intelligence</h3>
+          <p className="text-slate-600 mb-8 leading-relaxed">
+            Get 3 validated business ideas with real-world market signals, revenue potential, and execution blueprints.
+          </p>
+          <button onClick={onUpgrade} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:scale-105 transition-transform">
+            Upgrade to Founder
+          </button>
         </div>
       </div>
-      <div className="flex-1 p-3 bg-slate-50/50 overflow-hidden">
-        {currentIdea ? (
-          <MarketCard idea={currentIdea} isPro={isPro} onUpgrade={onUpgrade} />
-        ) : (
-          <div className="flex items-center justify-center h-full text-xs text-slate-400">Select an opportunity</div>
+    );
+  }
+
+  // Calculate Average Match Score
+  const avgScore = result.marketIdeas.length > 0
+    ? Math.round(result.marketIdeas.reduce((acc, curr) => acc + curr.score.total, 0) / result.marketIdeas.length)
+    : 0;
+
+  return (
+    <div className="h-full flex flex-col bg-slate-50/50 rounded-3xl border border-slate-200/50">
+
+      {/* Widget Header */}
+      <div className="px-6 py-4 flex justify-between items-center bg-white rounded-t-3xl border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900">Market Opportunities</h3>
+            <p className="text-xs text-slate-500">AI-Validated Business Models</p>
+          </div>
+        </div>
+        {avgScore > 0 && (
+          <div className="px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full">
+            Avg Match: {avgScore}%
+          </div>
         )}
       </div>
+
+      {/* Widget Body - SCROLLABLE GRID */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {result.marketIdeas.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <p>No market data yet. Click "Re-Analyze" to generate.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {result.marketIdeas.map((idea, idx) => (
+              <MarketCard key={idx} idea={idea} onClick={() => setSelectedIdea(idea)} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* MODAL - Blueprint View */}
+      {selectedIdea && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl relative">
+
+            {/* Modal Header */}
+            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-start bg-slate-50">
+              <div>
+                <h2 className="text-3xl font-serif font-bold text-slate-900">{selectedIdea.title}</h2>
+                <p className="text-slate-600 mt-1 max-w-2xl">{selectedIdea.description}</p>
+              </div>
+              <button onClick={() => setSelectedIdea(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                <X size={24} className="text-slate-400" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                {/* Left Col: Validation Data */}
+                <div className="space-y-6">
+                  <Section title="Why Now?">
+                    <p className="text-sm text-slate-600">{selectedIdea.validation.whyNow}</p>
+                  </Section>
+                  <Section title="Market Gap">
+                    <p className="text-sm text-slate-600">{selectedIdea.validation.marketGap}</p>
+                  </Section>
+                  <Section title="Revenue Potential">
+                    <div className="p-3 bg-emerald-50 text-emerald-800 font-bold rounded-lg border border-emerald-100 text-center">
+                      {selectedIdea.validation.revenuePotential}
+                    </div>
+                  </Section>
+                </div>
+
+                {/* Right Col: Blueprint (Wider) */}
+                <div className="md:col-span-2 space-y-8 pl-0 md:pl-8 md:border-l border-slate-100">
+
+                  <div className="bg-slate-900 text-white p-6 rounded-2xl">
+                    <h4 className="font-bold text-lg mb-4 flex items-center gap-2">🚀 Execution Plan</h4>
+                    <ul className="space-y-4">
+                      {selectedIdea.blueprint.executionPlan.map((step, i) => (
+                        <li key={i} className="flex gap-3 text-sm leading-relaxed opacity-90">
+                          <span className="font-bold text-indigo-400">{i + 1}.</span> {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Section title="First Step (MVP)">
+                    <p className="text-sm text-slate-700 font-medium p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                      {selectedIdea.blueprint.mvpStep}
+                    </p>
+                  </Section>
+
+                  <Section title="Day in the Life">
+                    <p className="text-sm text-slate-500 italic">"{selectedIdea.blueprint.dayInLife}"</p>
+                  </Section>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

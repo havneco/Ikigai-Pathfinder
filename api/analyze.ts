@@ -2,7 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const config = {
-  maxDuration: 60, // Allow longer timeout for research
+  runtime: 'edge',
+  maxDuration: 60,
 };
 
 const getAI = () => {
