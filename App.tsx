@@ -280,7 +280,6 @@ const App = () => {
       localStorage.setItem('ikigaiResult', JSON.stringify(analysis));
 
     } catch (err) {
-    } catch (err) {
       console.error(err);
       setError("Analysis failed. Please try again.");
       setStep(Step.PAID_FOR);
