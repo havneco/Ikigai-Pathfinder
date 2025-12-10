@@ -163,25 +163,6 @@ const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
 export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
   const [selectedIdea, setSelectedIdea] = useState<MarketOpportunity | null>(null);
 
-  if (!isPro) {
-    return (
-      <div className="h-full bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col items-center justify-center text-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-indigo-50/50"></div>
-        <div className="relative z-10 max-w-md">
-          <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-            <Lock size={32} />
-          </div>
-          <h3 className="text-2xl font-serif font-bold text-slate-900 mb-3">Unlock Market Intelligence</h3>
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Get 3 validated business ideas with real-world market signals, revenue potential, and execution blueprints.
-          </p>
-          <button onClick={onUpgrade} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:scale-105 transition-transform">
-            Upgrade to Founder
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const avgScore = result.marketIdeas.length > 0
     ? Math.round(result.marketIdeas.reduce((acc, curr) => acc + curr.score.total, 0) / result.marketIdeas.length)
@@ -421,11 +402,6 @@ export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikig
     const textToSend = overrideInput || chatInput;
     if (!textToSend.trim()) return;
 
-    if (!isPro && messageCount >= FREE_LIMIT) {
-      onUpgrade();
-      return;
-    }
-
     if (!overrideInput) setChatInput(''); // Only clear input if manual
     setMessageCount(prev => prev + 1);
 
@@ -454,14 +430,9 @@ export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikig
       {/* Header */}
       <div className={`px-4 py-3 border-b flex justify-between items-center ${isPro ? 'bg-gradient-to-r from-amber-50 to-orange-50' : 'bg-slate-50'}`}>
         <div className="flex items-center gap-2">
-          <Bot size={18} className={isPro ? 'text-amber-600' : 'text-indigo-600'} />
-          <span className="font-bold text-sm text-slate-800">{isPro ? 'Founder Copilot' : 'AI Copilot'}</span>
+          <Bot size={18} className='text-amber-600' />
+          <span className="font-bold text-sm text-slate-800">Founder Copilot</span>
         </div>
-        {!isPro && (
-          <span className="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-full text-slate-500">
-            {FREE_LIMIT - messageCount} free msgs
-          </span>
-        )}
       </div>
 
       {/* Messages */}
@@ -493,28 +464,20 @@ export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikig
       </div>
 
       {/* Input / Upgrade Overlay */}
+      {/* Input Overlay */}
       <div className="p-3 bg-white border-t border-slate-100">
-        {!isPro && messageCount >= FREE_LIMIT ? (
-          <div className="text-center">
-            <p className="text-xs text-slate-500 mb-2">Free limit reached.</p>
-            <button onClick={onUpgrade} className="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800">
-              Upgrade to Continue
-            </button>
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleChat()}
-              placeholder="Ask a strategic question..."
-              className="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <button onClick={handleChat} disabled={!chatInput.trim() || isChatting} className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-              <Send size={14} />
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <input
+            value={chatInput}
+            onChange={e => setChatInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleChat()}
+            placeholder="Ask a strategic question..."
+            className="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button onClick={() => handleChat()} disabled={!chatInput.trim() || isChatting} className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+            <Send size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );

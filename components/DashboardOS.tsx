@@ -63,15 +63,9 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          {isPro ? (
-            <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-3 py-1 rounded-full border border-amber-100">
-              <Crown size={12} fill="currentColor" /> FOUNDER
-            </span>
-          ) : (
-            <button onClick={onUpgrade} className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors">
-              Upgrade to Pro
-            </button>
-          )}
+          <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-3 py-1 rounded-full border border-amber-100">
+            <Crown size={12} fill="currentColor" /> FOUNDER
+          </span>
 
           <div className="h-6 w-px bg-slate-200"></div>
 

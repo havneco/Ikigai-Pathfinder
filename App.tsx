@@ -21,7 +21,8 @@ const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
-  const [isPro, setIsPro] = useState(false);
+  // UNLOCKED: Everyone is a Founder by default
+  const [isPro, setIsPro] = useState(true);
   const [proUserCount, setProUserCount] = useState(7);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
