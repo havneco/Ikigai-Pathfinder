@@ -99,7 +99,7 @@ export default async function handler(req: Request) {
   `;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-1.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -138,8 +138,9 @@ export default async function handler(req: Request) {
           cleaned += "}".repeat(openCount - closeCount);
         }
 
-        // 4. Minimal Escape Handling
+        // 4. Cleanup (Comments, Newlines, etc)
         cleaned = cleaned
+          .replace(/\/\/.*$/gm, "") // Remove JS comments //
           .replace(/\n/g, " ")
           .replace(/\r/g, "")
           .replace(/\t/g, " ");
@@ -156,17 +157,17 @@ export default async function handler(req: Request) {
         console.error("JSON Parse 1 Failed:", parseError);
         // Fallback: Aggressive sanitization
         try {
-          // Sometimes Gemini puts raw newlines in strings. Replace them.
-          // Also fixes common "bad escape" like `C:\Path` becoming `C:Path` if not escaped
           const aggressiveClean = cleanedText
-            .replace(/[\n\r]/g, "\\n") // Escape newlines
-            .replace(/\\(?![\\"{}[\]])/g, "\\\\"); // Escape backslashes that aren't structural
+            .replace(/\\(?![\\"{}[\]])/g, "\\\\");
 
           const parsed2 = JSON.parse(aggressiveClean);
           return new Response(JSON.stringify(parsed2), { headers: { 'Content-Type': 'application/json' } });
         } catch (e2) {
-          console.error("JSON Parse 2 Failed:", e2);
-          return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: text }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+          return new Response(JSON.stringify({
+            error: "Failed to parse AI response",
+            raw: text,
+            cleaned: cleanedText
+          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
         }
       }
     }
