@@ -313,204 +313,187 @@ const App = () => {
       setLoading(false);
       // If core fails, we show error
     }
-  };User Metadata
-  supabase.auth.updateUser({
-    data: { saved_state: ikigaiData }
-  }).then(({ error }) => {
-    if (error) console.error("Background save inputs failed:", error);
-  });
-}
-
-// Save Result to LocalStorage (Cache to prevent costly re-runs)
-localStorage.setItem('ikigaiResult', JSON.stringify(analysis));
-
-    } catch (err) {
-  console.error(err);
-  setError("Analysis failed. Please try again.");
-  setStep(Step.PAID_FOR);
-  setLoading(false);
-}
   };
 
-const handleSkipAnalysis = () => {
-  // Provide a safe placeholder if the user decides to skip the long wait
-  const placeholderResult: IkigaiResult = {
-    statement: "Your Ikigai (Generated)",
-    description: "We couldn't finish the deep analysis in time, but you can refine your inputs here and try again.",
-    intersectionPoints: {
-      passion: "Pending",
-      mission: "Pending",
-      profession: "Pending",
-      vocation: "Pending"
-    },
-    marketIdeas: [],
-    roadmap: [],
-    sources: []
+  const handleSkipAnalysis = () => {
+    // Provide a safe placeholder if the user decides to skip the long wait
+    const placeholderResult: IkigaiResult = {
+      statement: "Your Ikigai (Generated)",
+      description: "We couldn't finish the deep analysis in time, but you can refine your inputs here and try again.",
+      intersectionPoints: {
+        passion: "Pending",
+        mission: "Pending",
+        profession: "Pending",
+        vocation: "Pending"
+      },
+      marketIdeas: [],
+      roadmap: [],
+      sources: []
+    };
+    setResult(placeholderResult);
+    setStep(Step.RESULT);
+    setLoading(false);
   };
-  setResult(placeholderResult);
-  setStep(Step.RESULT);
-  setLoading(false);
-};
 
-const handleLogin = async () => {
-  setIsLoggingIn(true);
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin, queryParams: { access_type: 'offline', prompt: 'consent select_account' } }
-  });
-};
+  const handleLogin = async () => {
+    setIsLoggingIn(true);
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin, queryParams: { access_type: 'offline', prompt: 'consent select_account' } }
+    });
+  };
 
-// --- RENDER ---
-const founderSlotsLeft = Math.max(0, 100 - proUserCount);
+  // --- RENDER ---
+  const founderSlotsLeft = Math.max(0, 100 - proUserCount);
 
-if (isSessionLoading) return (
-  <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-    <Loader2 size={48} className="animate-spin text-indigo-500 mb-4" />
-    <p className="text-slate-500 animate-pulse font-medium mb-8">Loading Productivity OS...</p>
+  if (isSessionLoading) return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <Loader2 size={48} className="animate-spin text-indigo-500 mb-4" />
+      <p className="text-slate-500 animate-pulse font-medium mb-8">Loading Productivity OS...</p>
 
-    <button
-      onClick={resetApp}
-      className="text-xs text-slate-400 hover:text-red-500 underline border border-transparent hover:border-red-100 p-2 rounded transition-colors"
-    >
-      Stuck? Reset Application
-    </button>
-  </div>
-);
-
-// === THE NEW OS VIEW ===
-if (step === Step.RESULT && result) {
-  return (
-    <>
-      <DashboardOS
-        user={user}
-        result={result}
-        ikigaiData={ikigaiData}
-        setIkigaiData={setIkigaiData}
-        setResult={setResult}
-        isPro={isPro}
-        onUpgrade={() => setShowSuccessModal(true)}
-        onLogout={resetApp}
-        slotsLeft={founderSlotsLeft}
-      />
-      {showSuccessModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md animate-in fade-in">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl text-center relative overflow-hidden">
-            <button onClick={() => setShowSuccessModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600"><Crown size={32} /></div>
-            <h2 className="text-2xl font-bold text-slate-900">Welcome to Founder's Club</h2>
-            <p className="text-slate-600 mt-2 mb-6">You have unlocked the full power of the Productivity OS.</p>
-            <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">Access Dashboard</button>
-          </div>
-        </div>
-      )}
-    </>
+      <button
+        onClick={resetApp}
+        className="text-xs text-slate-400 hover:text-red-500 underline border border-transparent hover:border-red-100 p-2 rounded transition-colors"
+      >
+        Stuck? Reset Application
+      </button>
+    </div>
   );
-}
 
-// === THE WIZARD VIEW ===
-const getBgClass = () => {
-  switch (step) {
-    case Step.LOVE: return 'from-red-100 to-rose-50';
-    case Step.GOOD_AT: return 'from-teal-100 to-emerald-50';
-    case Step.WORLD_NEEDS: return 'from-sky-100 to-blue-50';
-    case Step.PAID_FOR: return 'from-amber-100 to-yellow-50';
-    default: return 'from-gray-100 to-slate-50';
-  }
-};
-
-if (step === Step.PRIVACY || step === Step.TERMS) {
-  return <div className="p-8 bg-slate-50 min-h-screen"><LegalPages type={step === Step.PRIVACY ? 'privacy' : 'terms'} onBack={() => setStep(previousStep)} /></div>;
-}
-
-return (
-  <div className={`min-h-screen w-full bg-gradient-to-br ${getBgClass()} transition-colors duration-1000 flex flex-col font-sans text-slate-800`}>
-    <header className="px-6 py-4 flex justify-between items-center backdrop-blur-sm bg-white/30 sticky top-0 z-50">
-      <div onClick={() => setStep(Step.WELCOME)} className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2 cursor-pointer">
-        <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">IK</span> Pathfinder
-      </div>
-      <div className="flex items-center gap-4">
-        {user ? <div className="flex items-center gap-2"><span className="text-sm font-medium">{user.name}</span><img src={user.photoUrl} className="w-8 h-8 rounded-full" /></div> :
-          step !== Step.WELCOME && <button onClick={handleLogin} className="text-sm font-semibold flex items-center gap-1"><LogIn size={16} /> Sign In</button>}
-      </div>
-    </header>
-
-    <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-center items-center relative">
-      {step === Step.WELCOME && (
-        <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-700 space-y-8 flex flex-col items-center">
-          <div className="hover:scale-105 transition-transform duration-700"><HeroIkigai /></div>
-          <div className="-mt-10 relative z-10">
-            <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 text-slate-900">Discover Your Ikigai</h1>
-            <p className="text-xl text-slate-600 mb-10 leading-relaxed">Find your purpose with AI-driven market analysis.</p>
-            {user ? (
-              <div className="flex flex-col items-center gap-4">
-                <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-10 py-4 bg-slate-900 text-white text-lg rounded-full font-medium hover:scale-105 transition-transform">
-                  {result ? 'Enter Dashboard' : 'Start Analysis'}
-                </button>
-                {!result && ikigaiData.love.length > 0 && (
-                  <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
-                    Resume Analysis <ArrowRight size={14} />
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <button onClick={handleLogin} className="px-8 py-3 bg-white text-slate-800 border border-slate-200 shadow-md text-lg rounded-full font-medium hover:bg-slate-50 flex items-center gap-3 w-64 justify-center">
-                  {isLoggingIn ? <Loader2 className="animate-spin" /> : 'Sign in with Google'}
-                </button>
-                {ikigaiData.love.length > 0 ? (
-                  <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
-                    Resume Analysis <ArrowRight size={14} />
-                  </button>
-                ) : (
-                  <button onClick={handleNext} className="text-slate-500 text-sm hover:underline">Continue as Guest</button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Legal Footer */}
-          <div className="mt-12 pt-8 border-t border-slate-200/50 flex flex-col items-center gap-3 text-xs text-slate-400">
-            <div className="flex gap-6">
-              <button onClick={() => { setPreviousStep(step); setStep(Step.PRIVACY); }} className="hover:text-slate-600 transition-colors">Privacy Policy</button>
-              <button onClick={() => { setPreviousStep(step); setStep(Step.TERMS); }} className="hover:text-slate-600 transition-colors">Terms of Service</button>
+  // === THE NEW OS VIEW ===
+  if (step === Step.RESULT && result) {
+    return (
+      <>
+        <DashboardOS
+          user={user}
+          result={result}
+          ikigaiData={ikigaiData}
+          setIkigaiData={setIkigaiData}
+          setResult={setResult}
+          isPro={isPro}
+          onUpgrade={() => setShowSuccessModal(true)}
+          onLogout={resetApp}
+          slotsLeft={founderSlotsLeft}
+        />
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md animate-in fade-in">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl text-center relative overflow-hidden">
+              <button onClick={() => setShowSuccessModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600"><Crown size={32} /></div>
+              <h2 className="text-2xl font-bold text-slate-900">Welcome to Founder's Club</h2>
+              <p className="text-slate-600 mt-2 mb-6">You have unlocked the full power of the Productivity OS.</p>
+              <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">Access Dashboard</button>
             </div>
-            <p>© {new Date().getFullYear()} Ikigai Pathfinder. All rights reserved.</p>
-            <a href="mailto:syewhite@gmail.com" className="hover:text-slate-600 transition-colors">Support: syewhite@gmail.com</a>
           </div>
+        )}
+      </>
+    );
+  }
+
+  // === THE WIZARD VIEW ===
+  const getBgClass = () => {
+    switch (step) {
+      case Step.LOVE: return 'from-red-100 to-rose-50';
+      case Step.GOOD_AT: return 'from-teal-100 to-emerald-50';
+      case Step.WORLD_NEEDS: return 'from-sky-100 to-blue-50';
+      case Step.PAID_FOR: return 'from-amber-100 to-yellow-50';
+      default: return 'from-gray-100 to-slate-50';
+    }
+  };
+
+  if (step === Step.PRIVACY || step === Step.TERMS) {
+    return <div className="p-8 bg-slate-50 min-h-screen"><LegalPages type={step === Step.PRIVACY ? 'privacy' : 'terms'} onBack={() => setStep(previousStep)} /></div>;
+  }
+
+  return (
+    <div className={`min-h-screen w-full bg-gradient-to-br ${getBgClass()} transition-colors duration-1000 flex flex-col font-sans text-slate-800`}>
+      <header className="px-6 py-4 flex justify-between items-center backdrop-blur-sm bg-white/30 sticky top-0 z-50">
+        <div onClick={() => setStep(Step.WELCOME)} className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2 cursor-pointer">
+          <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">IK</span> Pathfinder
         </div>
-      )
-      }
+        <div className="flex items-center gap-4">
+          {user ? <div className="flex items-center gap-2"><span className="text-sm font-medium">{user.name}</span><img src={user.photoUrl} className="w-8 h-8 rounded-full" /></div> :
+            step !== Step.WELCOME && <button onClick={handleLogin} className="text-sm font-semibold flex items-center gap-1"><LogIn size={16} /> Sign In</button>}
+        </div>
+      </header>
 
-      {
-        [Step.LOVE, Step.GOOD_AT, Step.WORLD_NEEDS, Step.PAID_FOR].includes(step) && (
-          <div className="w-full max-w-xl h-[600px]">
-            <WizardStep
-              title={step === Step.LOVE ? "What You Love" : step === Step.GOOD_AT ? "What You Are Good At" : step === Step.WORLD_NEEDS ? "What The World Needs" : "What You Can Be Paid For"}
-              description={step === Step.LOVE ? "Passions & Hobbies" : step === Step.GOOD_AT ? "Skills & Talents" : step === Step.WORLD_NEEDS ? "Causes & Problems" : "Marketable Skills"}
-              category={step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"}
-              colorClass={step === Step.LOVE ? "bg-[#FF6B6B]" : step === Step.GOOD_AT ? "bg-[#4ECDC4]" : step === Step.WORLD_NEEDS ? "bg-[#45B7D1]" : "bg-[#F7B731]"}
-              items={ikigaiData[step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]}
-              setItems={(items) => setIkigaiData({ ...ikigaiData, [step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]: items })}
-              onNext={handleNext}
-              onBack={step !== Step.LOVE ? () => setStep(Object.values(Step)[Object.values(Step).indexOf(step) - 1] as Step) : undefined}
-              context={ikigaiData}
-            />
+      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-center items-center relative">
+        {step === Step.WELCOME && (
+          <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-700 space-y-8 flex flex-col items-center">
+            <div className="hover:scale-105 transition-transform duration-700"><HeroIkigai /></div>
+            <div className="-mt-10 relative z-10">
+              <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 text-slate-900">Discover Your Ikigai</h1>
+              <p className="text-xl text-slate-600 mb-10 leading-relaxed">Find your purpose with AI-driven market analysis.</p>
+              {user ? (
+                <div className="flex flex-col items-center gap-4">
+                  <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-10 py-4 bg-slate-900 text-white text-lg rounded-full font-medium hover:scale-105 transition-transform">
+                    {result ? 'Enter Dashboard' : 'Start Analysis'}
+                  </button>
+                  {!result && ikigaiData.love.length > 0 && (
+                    <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
+                      Resume Analysis <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <button onClick={handleLogin} className="px-8 py-3 bg-white text-slate-800 border border-slate-200 shadow-md text-lg rounded-full font-medium hover:bg-slate-50 flex items-center gap-3 w-64 justify-center">
+                    {isLoggingIn ? <Loader2 className="animate-spin" /> : 'Sign in with Google'}
+                  </button>
+                  {ikigaiData.love.length > 0 ? (
+                    <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
+                      Resume Analysis <ArrowRight size={14} />
+                    </button>
+                  ) : (
+                    <button onClick={handleNext} className="text-slate-500 text-sm hover:underline">Continue as Guest</button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Legal Footer */}
+            <div className="mt-12 pt-8 border-t border-slate-200/50 flex flex-col items-center gap-3 text-xs text-slate-400">
+              <div className="flex gap-6">
+                <button onClick={() => { setPreviousStep(step); setStep(Step.PRIVACY); }} className="hover:text-slate-600 transition-colors">Privacy Policy</button>
+                <button onClick={() => { setPreviousStep(step); setStep(Step.TERMS); }} className="hover:text-slate-600 transition-colors">Terms of Service</button>
+              </div>
+              <p>© {new Date().getFullYear()} Ikigai Pathfinder. All rights reserved.</p>
+              <a href="mailto:syewhite@gmail.com" className="hover:text-slate-600 transition-colors">Support: syewhite@gmail.com</a>
+            </div>
           </div>
         )
-      }
+        }
 
-      {
-        step === Step.ANALYZING && (
-          <div className="w-full h-full flex items-center justify-center">
-            <SynthesisScreen onSkip={handleSkipAnalysis} />
-          </div>
-        )
-      }
+        {
+          [Step.LOVE, Step.GOOD_AT, Step.WORLD_NEEDS, Step.PAID_FOR].includes(step) && (
+            <div className="w-full max-w-xl h-[600px]">
+              <WizardStep
+                title={step === Step.LOVE ? "What You Love" : step === Step.GOOD_AT ? "What You Are Good At" : step === Step.WORLD_NEEDS ? "What The World Needs" : "What You Can Be Paid For"}
+                description={step === Step.LOVE ? "Passions & Hobbies" : step === Step.GOOD_AT ? "Skills & Talents" : step === Step.WORLD_NEEDS ? "Causes & Problems" : "Marketable Skills"}
+                category={step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"}
+                colorClass={step === Step.LOVE ? "bg-[#FF6B6B]" : step === Step.GOOD_AT ? "bg-[#4ECDC4]" : step === Step.WORLD_NEEDS ? "bg-[#45B7D1]" : "bg-[#F7B731]"}
+                items={ikigaiData[step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]}
+                setItems={(items) => setIkigaiData({ ...ikigaiData, [step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]: items })}
+                onNext={handleNext}
+                onBack={step !== Step.LOVE ? () => setStep(Object.values(Step)[Object.values(Step).indexOf(step) - 1] as Step) : undefined}
+                context={ikigaiData}
+              />
+            </div>
+          )
+        }
 
-      {error && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-6 py-4 rounded-xl shadow-xl">{error}</div>}
-    </main >
-  </div >
-);
+        {
+          step === Step.ANALYZING && (
+            <div className="w-full h-full flex items-center justify-center">
+              <SynthesisScreen onSkip={handleSkipAnalysis} />
+            </div>
+          )
+        }
+
+        {error && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-6 py-4 rounded-xl shadow-xl">{error}</div>}
+      </main >
+    </div >
+  );
 };
 
 export default App;
