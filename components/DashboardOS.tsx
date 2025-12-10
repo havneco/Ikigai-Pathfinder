@@ -5,7 +5,7 @@ import { StatementWidget, VennWidget, MarketWidget, ChatWidget } from './ResultV
 import QuadInputWidget from './QuadInputWidget';
 import TaskBoard from './TaskBoard';
 import { Crown, LogOut, LayoutGrid, CheckSquare, RefreshCcw } from 'lucide-react';
-import { generateIkigaiAnalysis } from '../services/geminiService';
+import { generateCoreAnalysis, enrichIdea } from '../services/geminiService';
 
 interface DashboardOSProps {
   user: User | null;
@@ -29,11 +29,23 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
   const handleReAnalysis = async () => {
     setIsAnalysing(true);
     try {
-      const newResult = await generateIkigaiAnalysis(ikigaiData);
-      setResult(newResult);
+      // 1. Core (Fast)
+      const coreResult = await generateCoreAnalysis(ikigaiData);
+      setResult(coreResult);
+
+      // 2. Enrich (Background Loop) - Fire and forget the state updates
+      setIsAnalysing(false); // Unlock UI immediately
+
+      const enrichedIdeas = [...coreResult.marketIdeas];
+      for (let i = 0; i < enrichedIdeas.length; i++) {
+        const deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
+        if (deepData) {
+          enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData };
+          setResult(prev => ({ ...prev, marketIdeas: [...enrichedIdeas] }));
+        }
+      }
     } catch (e) {
       console.error("Re-analysis failed", e);
-    } finally {
       setIsAnalysing(false);
     }
   };
