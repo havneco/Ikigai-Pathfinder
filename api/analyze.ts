@@ -115,32 +115,28 @@ export default async function handler(req: Request) {
       const cleanJsonString = (str: string) => {
         if (!str) return "{}";
 
-        // 1. Remove Markdown Code Blocks (```json ... ```)
-        let cleaned = str.replace(/```json\s*|\s*```/g, "").trim();
+        // 1. Locate the JSON block (safest way to handle markdown)
+        const firstBrace = str.indexOf('{');
+        const lastBrace = str.lastIndexOf('}');
 
-        // 2. Remove "Here is the JSON..." prefixes if any (simple heuristic)
-        const firstBrace = cleaned.indexOf('{');
-        if (firstBrace >= 0) {
-          cleaned = cleaned.substring(firstBrace);
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+          let cleaned = str.substring(firstBrace, lastBrace + 1);
+
+          // 2. Handle Truncation (if the last brace matches the very end, it might still be truncated internally, 
+          // but normally we assume if we found a closing brace, it's good. 
+          // If 'lastBrace' is far from the end, it means there was a footer we stripped.)
+
+          // 3. Minimal Escape Handling (Only fix newlines which break JSON.parse)
+          // We do NOT want to break valid escaped quotes like \"
+          cleaned = cleaned
+            .replace(/\n/g, " ")      // Remove actual newlines (JSON spec requires \n)
+            .replace(/\r/g, "")       // Remove CR
+            .replace(/\t/g, " ");     // Remove tabs
+
+          return cleaned;
         }
 
-        // 3. Handle Truncation (Try to close open braces if it ends abruptly)
-        // This is a naive attempt but might save a slightly cut-off response
-        const openBraces = (cleaned.match(/{/g) || []).length;
-        const closeBraces = (cleaned.match(/}/g) || []).length;
-        if (openBraces > closeBraces) {
-          cleaned += "}".repeat(openBraces - closeBraces);
-        }
-
-        // 4. Aggressive Escape Handling
-        cleaned = cleaned
-          .replace(/\\"/g, '"')         // Fix escaped quotes
-          .replace(/\\/g, '\\\\')       // Escape backslashes
-          .replace(/\n/g, " ")          // Remove newlines
-          .replace(/\r/g, "")           // Remove carriage returns
-          .replace(/\t/g, " ");         // Remove tabs
-
-        return cleaned;
+        return "{}";
       };
 
       const cleanedText = cleanJsonString(text);
