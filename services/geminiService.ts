@@ -26,34 +26,33 @@ export const getSuggestions = async (
   }
 };
 
-export const generateCoreAnalysis = async (data: IkigaiState): Promise<IkigaiResult> => {
+export const generateStructure = async (data: IkigaiState): Promise<Partial<IkigaiResult>> => {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'analysis_core',
-        ikigaiData: data
-      })
+      body: JSON.stringify({ type: 'analysis_structure', ikigaiData: data })
     });
+    if (!response.ok) throw new Error("Failed to fetch structure");
+    return await response.json();
+  } catch (error) {
+    console.error("Error generating structure", error);
+    return { statement: "Analysis Pending...", description: "AI is thinking...", roadmap: [] };
+  }
+};
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API Error ${response.status}: ${errorText.substring(0, 100)}`);
-    }
-    const result = await response.json();
-
-    return {
-      statement: result.statement || "Your Ikigai",
-      description: result.description || "Analysis generated.",
-      intersectionPoints: result.intersectionPoints || {},
-      marketIdeas: result.marketIdeas || [],
-      roadmap: result.roadmap || [],
-      sources: result.sources || []
-    };
-  } catch (error: any) {
-    console.error("Error generating core analysis", error);
-    throw error;
+export const generateIdeaTitles = async (data: IkigaiState): Promise<Partial<IkigaiResult>> => {
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'analysis_ideas_core', ikigaiData: data })
+    });
+    if (!response.ok) throw new Error("Failed to fetch ideas");
+    return await response.json();
+  } catch (error) {
+    console.error("Error generating ideas", error);
+    return { marketIdeas: [] };
   }
 };
 

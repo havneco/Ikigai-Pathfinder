@@ -68,8 +68,8 @@ export default async function handler(req: Request) {
       return new Response(JSON.stringify(JSON.parse(response.text || "[]")), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    // 2. CORE ANALYSIS MODE (Fast, Skeleton)
-    if (type === 'analysis_core') {
+    // 2a. STRUCTURE MODE (Instant, Header Data)
+    if (type === 'analysis_structure') {
       const prompt = `
   CONTEXT:
   1. "love": ${JSON.stringify(ikigaiData.love)}
@@ -77,13 +77,42 @@ export default async function handler(req: Request) {
   3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
   4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
 
-  Generate the CORE STRUCTURE of the "Ikigai Pathfinder" analysis.
+  Generate the HIGH-LEVEL STRATEGY for the "Ikigai Pathfinder".
   
   OUTPUT FORMAT (JSON ONLY):
   {
     "statement": "1-sentence 'I help X do Y' statement.",
     "description": "2-sentence why fit.",
     "intersectionPoints": { "passion": "...", "mission": "...", "profession": "...", "vocation": "..." },
+    "roadmap": [ { "phase": "Validation", "action": "First Sale", "details": "How." } ]
+  }
+
+  RULES:
+  - Model: gemini-2.0-flash-exp.
+  - NO MARKDOWN.
+  `;
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+      const cleanedText = cleanJsonString(response.text || "{}");
+      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // 2b. IDEAS MODE (Core Titles)
+    if (type === 'analysis_ideas_core') {
+      const prompt = `
+  CONTEXT:
+  1. "love": ${JSON.stringify(ikigaiData.love)}
+  2. "goodAt": ${JSON.stringify(ikigaiData.goodAt)}
+  3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
+  4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
+
+  Generate 3 BUSINESS IDEAS based on this Ikigai.
+
+  OUTPUT FORMAT (JSON ONLY):
+  {
     "marketIdeas": [
       {
         "title": "Niche Title",
@@ -92,23 +121,19 @@ export default async function handler(req: Request) {
         "revenuePotential": "$Xk/mo",
         "whyNow": "Brief trend."
       }
-    ],
-    "roadmap": [ { "phase": "Validation", "action": "First Sale", "details": "How." } ]
+    ]
   }
 
   RULES:
-  - Generate 3 Market Ideas.
-  - OMIT 'validation', 'blueprint', and 'launchpad' fields (we will fetch them later).
-  - Model: gemini-2.0-flash-exp. Speed is priority.
+  - Generate 3 Ideas.
+  - OMIT 'validation', 'blueprint', and 'launchpad' (fetched later).
   - NO MARKDOWN.
   `;
-
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash-exp",
         contents: prompt,
-        config: { responseMimeType: "application/json" } // No tools for speed
+        config: { responseMimeType: "application/json" }
       });
-      // ... processing handled by existing cleanJsonString below ...
       const cleanedText = cleanJsonString(response.text || "{}");
       return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
     }

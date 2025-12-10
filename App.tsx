@@ -6,7 +6,7 @@ import DashboardOS from './components/DashboardOS';
 import HeroIkigai from './components/HeroIkigai';
 import LegalPages from './components/LegalPages';
 import SynthesisScreen from './components/SynthesisScreen';
-import { generateCoreAnalysis, enrichIdea } from './services/geminiService';
+import { generateStructure, generateIdeaTitles, enrichIdea } from './services/geminiService';
 import { supabase } from './lib/supabaseClient';
 import { Loader2, LogIn, Crown, X, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -253,65 +253,60 @@ const App = () => {
   };
 
   const performAnalysis = async () => {
-    setLoading(true);
+    // 1. INSTANT TRANSITION: Set Skeleton State
+    const skeleton: IkigaiResult = {
+      statement: "", // Empty string triggers Loading Pulse in Widget
+      description: "AI is analyzing your profile...",
+      intersectionPoints: { passion: "", mission: "", profession: "", vocation: "" },
+      marketIdeas: [], // Empty array triggers Loading Pulse in MarketWidget
+      roadmap: [],
+      sources: []
+    };
+
+    setResult(skeleton);
+    setStep(Step.RESULT); // User sees Dashboard IMMEDIATELY
+
     try {
-      // 1. Generate CORE Analysis (Fast Skeleton)
-      const coreResult = await generateCoreAnalysis(ikigaiData);
-      setResult(coreResult);
+      // 2. Stream Phase A: Structure (Statement, Roots)
+      const structure = await generateStructure(ikigaiData);
+      setResult(prev => prev ? ({ ...prev, ...structure }) : structure as IkigaiResult);
 
-      // 2. UNBLOCK UI IMMEDIATELY
-      setStep(Step.RESULT);
-      setLoading(false);
+      // 3. Stream Phase B: Idea Titles
+      const ideasData = await generateIdeaTitles(ikigaiData);
+      const initialIdeas = ideasData.marketIdeas || [];
+      setResult(prev => prev ? ({ ...prev, marketIdeas: initialIdeas }) : null);
 
-      // 3. Background Enrichment (The Muscle)
-      // Save initial result first
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        // Initial Save
-        await supabase.from('ikigai_results').insert({
-          user_id: currentUser.id,
-          statement: coreResult.statement,
-          description: coreResult.description,
-          intersection_points: coreResult.intersectionPoints,
-          roadmap: coreResult.roadmap,
-          market_ideas: coreResult.marketIdeas,
-          sources: coreResult.sources
-        });
-      }
-
-      // 4. Enrich Loop: Fetch deep data for each idea one by one
-      const enrichedIdeas = [...coreResult.marketIdeas];
+      // 4. Stream Phase C: Deep Enrichment (The Spiral)
+      const enrichedIdeas = [...initialIdeas];
       for (let i = 0; i < enrichedIdeas.length; i++) {
-        // Fetch details for idea i
         const deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
         if (deepData) {
-          // Merge deep data into the idea
           enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData };
-
-          // Update UI State incrementally
+          // Update UI live per card
           setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
-
-          // Update Database (optional, but good for persistence)
-          if (currentUser) {
-            // We would ideally patch the specific row, but for now we mainly rely on local state
-            // or we could overwrite the 'market_ideas' column if we tracked the row ID.
-            // For this MVP, we just update the local UX.
-          }
         }
       }
 
-      // Final Save to ensure full data is persisted
+      // 5. Final Save
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
-        // Simplest way: just save a new row or update. 
-        // For now, let's assume the user considers "Done" when all loaded.
-        // Or strictly reliance on localStorage for the active session.
-        localStorage.setItem('ikigaiResult', JSON.stringify({ ...coreResult, marketIdeas: enrichedIdeas }));
+        const finalResult = { ...structure, marketIdeas: enrichedIdeas } as IkigaiResult;
+        localStorage.setItem('ikigaiResult', JSON.stringify(finalResult));
+
+        supabase.from('ikigai_results').insert({
+          user_id: currentUser.id,
+          statement: finalResult.statement,
+          description: finalResult.description,
+          intersection_points: finalResult.intersectionPoints,
+          roadmap: finalResult.roadmap,
+          market_ideas: finalResult.marketIdeas,
+          sources: finalResult.sources
+        });
       }
 
     } catch (e) {
       console.error(e);
-      setLoading(false);
-      // If core fails, we show error
+      setError("Analysis stream interrupted. Please refresh.");
     }
   };
 

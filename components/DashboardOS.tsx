@@ -5,7 +5,7 @@ import { StatementWidget, VennWidget, MarketWidget, ChatWidget } from './ResultV
 import QuadInputWidget from './QuadInputWidget';
 import TaskBoard from './TaskBoard';
 import { Crown, LogOut, LayoutGrid, CheckSquare, RefreshCcw } from 'lucide-react';
-import { generateCoreAnalysis, enrichIdea } from '../services/geminiService';
+import { generateStructure, generateIdeaTitles, enrichIdea } from '../services/geminiService';
 
 interface DashboardOSProps {
   user: User | null;
@@ -28,15 +28,26 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
 
   const handleReAnalysis = async () => {
     setIsAnalysing(true);
+    // 1. Skeleton Reset
+    setResult({
+      ...result,
+      statement: "",
+      marketIdeas: [],
+      description: "AI is rethinking your strategy..."
+    });
+
     try {
-      // 1. Core (Fast)
-      const coreResult = await generateCoreAnalysis(ikigaiData);
-      setResult(coreResult);
+      // 2. Stream Structure
+      const structure = await generateStructure(ikigaiData);
+      setResult(prev => ({ ...prev, ...structure }));
 
-      // 2. Enrich (Background Loop) - Fire and forget the state updates
-      setIsAnalysing(false); // Unlock UI immediately
+      // 3. Stream Ideas
+      const ideasData = await generateIdeaTitles(ikigaiData);
+      const initialIdeas = ideasData.marketIdeas || [];
+      setResult(prev => ({ ...prev, marketIdeas: initialIdeas }));
 
-      const enrichedIdeas = [...coreResult.marketIdeas];
+      // 4. Enrich Loop
+      const enrichedIdeas = [...initialIdeas];
       for (let i = 0; i < enrichedIdeas.length; i++) {
         const deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
         if (deepData) {
@@ -46,6 +57,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
       }
     } catch (e) {
       console.error("Re-analysis failed", e);
+    } finally {
       setIsAnalysing(false);
     }
   };
