@@ -56,47 +56,46 @@ export default async function handler(req: Request) {
   3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
   4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
 
-  Generate a JSON analysis for the "Ikigai Pathfinder" persona: a decisive strategist.
+  Generate a JSON analysis for the "Ikigai Pathfinder" persona.
   
   OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
   {
     "statement": "1-sentence 'I help X do Y' statement.",
     "description": "2-sentence why fit.",
     "intersectionPoints": {
-       "passion": "Synthesis of Love/GoodAt",
-       "mission": "Synthesis of Love/Needs",
-       "profession": "Synthesis of GoodAt/Paid",
-       "vocation": "Synthesis of Needs/Paid"
+       "passion": "Synthesis",
+       "mission": "Synthesis",
+       "profession": "Synthesis",
+       "vocation": "Synthesis"
     },
     "marketIdeas": [
       {
-        "title": "Niche Business Title",
+        "title": "Niche Title",
         "description": "2-sentence pitch.",
         "score": 95,
         "revenuePotential": "$Xk/mo",
         "whyNow": "Market trend.",
         "validation": { "signals": [ { "type": "trend", "value": "+X%", "description": "Metric" } ] },
         "valueLadder": {
-           "leadMagnet": "Free tool name",
-           "frontendOffer": "Low-ticket product",
-           "coreOffer": "High-ticket service"
+           "leadMagnet": "Free tool",
+           "frontendOffer": "Low-ticket",
+           "coreOffer": "High-ticket"
         },
         "blueprint": {
-            "theWedge": "Smallest niche entry point.",
-            "launchpad": "System prompt for AI execution."
+            "theWedge": "Smallest entry point.",
+            "launchpad": "System prompt."
         }
       }
     ],
     "roadmap": [
-       { "phase": "Validation", "action": "First Sale", "details": "How to get it." },
-       { "phase": "Scale", "action": "Automate", "details": "What to build." }
+       { "phase": "Validation", "action": "First Sale", "details": "How." }
     ]
   }
 
   RULES:
-  - Generate EXACTLY 3 Market Ideas.
-  - BE DECISIVE. Data > Vibes.
-  - NO MARKDOWN (\`\`\`json). Just raw JSON string.
+  - Generate 3 Market Ideas.
+  - BE DECISIVE.
+  - NO MARKDOWN (\`\`\`json). RAW JSON ONLY.
   `;
 
       const response = await ai.models.generateContent({
@@ -115,28 +114,37 @@ export default async function handler(req: Request) {
       const cleanJsonString = (str: string) => {
         if (!str) return "{}";
 
-        // 1. Locate the JSON block (safest way to handle markdown)
+        // 1. Locate the JSON block
         const firstBrace = str.indexOf('{');
-        const lastBrace = str.lastIndexOf('}');
-
-        if (firstBrace >= 0 && lastBrace > firstBrace) {
-          let cleaned = str.substring(firstBrace, lastBrace + 1);
-
-          // 2. Handle Truncation (if the last brace matches the very end, it might still be truncated internally, 
-          // but normally we assume if we found a closing brace, it's good. 
-          // If 'lastBrace' is far from the end, it means there was a footer we stripped.)
-
-          // 3. Minimal Escape Handling (Only fix newlines which break JSON.parse)
-          // We do NOT want to break valid escaped quotes like \"
-          cleaned = cleaned
-            .replace(/\n/g, " ")      // Remove actual newlines (JSON spec requires \n)
-            .replace(/\r/g, "")       // Remove CR
-            .replace(/\t/g, " ");     // Remove tabs
-
-          return cleaned;
+        // Scan for the *last* logical closing brace, handling truncation
+        // But for now, extract substring first
+        let cleaned = str;
+        if (firstBrace >= 0) {
+          cleaned = str.substring(firstBrace);
         }
 
-        return "{}";
+        // 2. Count Braces to handle truncation / markdown suffix
+        const openCount = (cleaned.match(/{/g) || []).length;
+        const closeCount = (cleaned.match(/}/g) || []).length;
+
+        // If extracted string has suffix garbage (like markdown fences), trim it
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (lastBrace > 0 && closeCount >= openCount) {
+          cleaned = cleaned.substring(0, lastBrace + 1);
+        }
+
+        // 3. Auto-Close if Truncated
+        if (openCount > closeCount) {
+          cleaned += "}".repeat(openCount - closeCount);
+        }
+
+        // 4. Minimal Escape Handling
+        cleaned = cleaned
+          .replace(/\n/g, " ")
+          .replace(/\r/g, "")
+          .replace(/\t/g, " ");
+
+        return cleaned;
       };
 
       const cleanedText = cleanJsonString(text);
