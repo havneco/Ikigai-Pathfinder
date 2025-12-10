@@ -118,7 +118,10 @@ export default async function handler(req: Request) {
         } // Force JSON
       });
 
-      return new Response(response.text, { headers: { 'Content-Type': 'application/json' } });
+      const text = response.text || "{}";
+      const cleanedText = text.replace(/```json\s*|\s*```/g, "").trim(); // Remove Markdown formatting
+
+      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
     }
 
     return new Response("Unknown Type", { status: 400 });
