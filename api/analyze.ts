@@ -191,8 +191,8 @@ export default async function handler(req: Request) {
   } catch (error: any) {
     return new Response(JSON.stringify({
       error: error.message,
-      _version: "2.4-fix-parsing",
-      tip: "If you see this, the new parser is live but failing."
+      _version: "2.6-revert-2.0",
+      tip: "Reverted to 2.0-flash-exp per user request. If timeout, plan upgrade needed."
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }

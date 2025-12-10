@@ -167,8 +167,18 @@ const App = () => {
           setIkigaiData({ love: [], goodAt: [], worldNeeds: [], paidFor: [] });
           setResult(null);
           setStep(Step.WELCOME);
-          setIsPro(false);
+          // UNLOCKED: Everyone is a Founder
+          setIsPro(true);
           userRef.current = null;
+        } else {
+          // Guest Load: Check Local Cache
+          const cached = localStorage.getItem('ikigaiResult');
+          if (cached) {
+            try {
+              setResult(JSON.parse(cached));
+              setStep(Step.RESULT);
+            } catch (e) { console.error("Cached result parse error", e); }
+          }
         }
         setIsSessionLoading(false);
         return;
