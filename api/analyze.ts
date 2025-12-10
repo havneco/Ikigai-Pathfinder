@@ -50,76 +50,54 @@ export default async function handler(req: Request) {
       const model = "gemini-2.5-flash"; // Using fast model for demo, or switch to pro-preview if defined
 
       const prompt = `
-            # ROLE
-            You are the "Ikigai Pathfinder," a decisive Career & Business Strategist. Your mission is to cure "Analysis Paralysis." You do not offer vague suggestions; you provide data-backed, validated directives.
+  CONTEXT:
+  1. "love": ${JSON.stringify(ikigaiData.love)}
+  2. "goodAt": ${JSON.stringify(ikigaiData.goodAt)}
+  3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
+  4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
 
-            # CORE PHILOSOPHY
-            1. **Data > Vibes:** Never suggest a path just because it "sounds nice." Suggest it because the market signals (trends, search volume) prove it is viable.
-            2. **Niche > Generic:** Do not say "Become a Writer." Say "Become a Technical Ghostwriter for Fintech Founders." Specificity creates value.
-            3. **Action > Theory:** Every piece of advice must end with a tool to execute it immediately.
-            4. **Urgency is Key:** You must explain "Why Now?" (e.g., new regulations, emerging tech).
+  Generate a JSON analysis for the "Ikigai Pathfinder" persona: a decisive strategist.
+  
+  OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
+  {
+    "statement": "1-sentence 'I help X do Y' statement.",
+    "description": "2-sentence why fit.",
+    "intersectionPoints": {
+       "passion": "Synthesis of Love/GoodAt",
+       "mission": "Synthesis of Love/Needs",
+       "profession": "Synthesis of GoodAt/Paid",
+       "vocation": "Synthesis of Needs/Paid"
+    },
+    "marketIdeas": [
+      {
+        "title": "Niche Business Title",
+        "description": "2-sentence pitch.",
+        "score": 95,
+        "revenuePotential": "$Xk/mo",
+        "whyNow": "Market trend.",
+        "validation": { "signals": [ { "type": "trend", "value": "+X%", "description": "Metric" } ] },
+        "valueLadder": {
+           "leadMagnet": "Free tool name",
+           "frontendOffer": "Low-ticket product",
+           "coreOffer": "High-ticket service"
+        },
+        "blueprint": {
+            "theWedge": "Smallest niche entry point.",
+            "launchpad": "System prompt for AI execution."
+        }
+      }
+    ],
+    "roadmap": [
+       { "phase": "Validation", "action": "First Sale", "details": "How to get it." },
+       { "phase": "Scale", "action": "Automate", "details": "What to build." }
+    ]
+  }
 
-            User Profile:
-            1. LOVE: ${data.love.join(", ")}
-            2. GOOD AT: ${data.goodAt.join(", ")}
-            3. WORLD NEEDS: ${data.worldNeeds.join(", ")}
-            4. PAID FOR: ${data.paidFor.join(", ")}
-        
-            TASK:
-            1. Synthesize a core Ikigai Profile.
-            2. **CRITICAL:** Use Google Search to find REAL-WORLD market data to generate 3 specific "Market Opportunities".
-            3. For each Opportunity, you MUST find:
-               - **Why Now:** Specific trends/laws/tech shifts.
-               - **Community Signals:** Specific subreddits/groups.
-               - **Market Gap:** Why existing solutions fail.
-               - **Revenue Potential:** Estimated income range.
-            4. Provide an Execution Plan including "The Wedge" (smallest specific niche to start).
-
-            **IMPORTANT OUTPUT RULES:**
-            - Return ONLY the raw JSON object. 
-            - Do NOT wrap in \`\`\`json markdown blocks.
-            - Ensure valid JSON syntax.
-        
-            OUTPUT JSON STRUCTURE:
-            {
-              "statement": "Inspiring 1-sentence Ikigai statement.",
-              "description": "Why this fits them.",
-              "intersectionPoints": {
-                "passion": "Intersection of Love & Good At",
-                "mission": "Intersection of Love & World Needs",
-                "profession": "Intersection of Good At & Paid For",
-                "vocation": "Intersection of World Needs & Paid For"
-              },
-              "marketIdeas": [
-                { 
-                  "title": "Specific, Niche Role/Business Name", 
-                  "description": "Brief, decisive pitch.",
-                  "score": { "total": 92, "passion": 9, "talent": 8, "demand": 9, "profit": 8 },
-                  "validation": {
-                    "whyNow": "Detailed explanation of market timing.",
-                    "marketGap": "Description of the unmet need.",
-                    "revenuePotential": "e.g. $5k-$10k MRR",
-                    "signals": [ { "type": "trend", "value": "Up 40%", "description": "Search interest" } ],
-                    "community": [ { "platform": "Reddit", "count": "150k members", "description": "r/SpecializedTopic", "score": 9 } ]
-                  },
-                  "blueprint": {
-                    "role": "Formal Title",
-                    "whyYou": "Connection to user input",
-                    "dayInLife": "A sentence about the daily routine",
-                    "mvpStep": " 'The Wedge': The smallest, specific niche they can start with to get a foothold.",
-                    "valueLadder": {
-                      "leadMagnet": "Free download/tool",
-                      "frontendOffer": "Low ticket ($50) product",
-                      "coreOffer": "Main subscription or high-ticket service"
-                    },
-                    "executionPlan": ["Day 1-10...", "Day 11-20...", "Day 21-30..."]
-                  },
-                  "launchpad": [ { "label": "Generate Asset", "tool": "ChatGPT", "prompt": "Act as a [Role]. Generate a [Asset] for [Niche]..." } ]
-                }
-              ],
-              "roadmap": [ { "phase": "Phase 1: Discovery", "action": "Short title", "details": "Specific step" } ]
-            }
-          `;
+  RULES:
+  - Generate EXACTLY 3 Market Ideas.
+  - BE DECISIVE. Data > Vibes.
+  - NO MARKDOWN (\`\`\`json). Just raw JSON string.
+  `;
 
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash-exp",
@@ -135,19 +113,33 @@ export default async function handler(req: Request) {
 
       // Helper to clean JSON string
       const cleanJsonString = (str: string) => {
-        // 1. Remove markdown code blocks
-        let cleaned = str.replace(/```json\s*|\s*```/g, "").trim();
-        // 2. Find the first '{' and last '}'
-        const firstCurly = cleaned.indexOf('{');
-        const lastCurly = cleaned.lastIndexOf('}');
-        if (firstCurly === -1 || lastCurly === -1) return "{}";
-        cleaned = cleaned.substring(firstCurly, lastCurly + 1);
+        if (!str) return "{}";
 
-        // 3. Escape unescaped control characters (common source of "Bad escaped char")
-        // This regex looks for backslashes that are NOT followed by specific valid escape chars
-        // cleaned = cleaned.replace(/\\(?!["\\/bfnrtu])/g, "\\\\"); 
-        // actually, simpler approach: Remove newlines inside strings if they break JSON, 
-        // but often the issue is just a stray backslash.
+        // 1. Remove Markdown Code Blocks (```json ... ```)
+        let cleaned = str.replace(/```json\s*|\s*```/g, "").trim();
+
+        // 2. Remove "Here is the JSON..." prefixes if any (simple heuristic)
+        const firstBrace = cleaned.indexOf('{');
+        if (firstBrace >= 0) {
+          cleaned = cleaned.substring(firstBrace);
+        }
+
+        // 3. Handle Truncation (Try to close open braces if it ends abruptly)
+        // This is a naive attempt but might save a slightly cut-off response
+        const openBraces = (cleaned.match(/{/g) || []).length;
+        const closeBraces = (cleaned.match(/}/g) || []).length;
+        if (openBraces > closeBraces) {
+          cleaned += "}".repeat(openBraces - closeBraces);
+        }
+
+        // 4. Aggressive Escape Handling
+        cleaned = cleaned
+          .replace(/\\"/g, '"')         // Fix escaped quotes
+          .replace(/\\/g, '\\\\')       // Escape backslashes
+          .replace(/\n/g, " ")          // Remove newlines
+          .replace(/\r/g, "")           // Remove carriage returns
+          .replace(/\t/g, " ");         // Remove tabs
+
         return cleaned;
       };
 
