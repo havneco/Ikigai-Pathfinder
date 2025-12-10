@@ -88,53 +88,58 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
   </div>
 );
 
-// --- HELPER: Trend Chart (Simulated) ---
-const TrendChart = () => (
-  <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
-    <div className="flex justify-between items-start mb-6">
-      <div className="flex items-baseline gap-3">
-        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Search Interest</h4>
-        <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold">+122% Growth</span>
-      </div>
-      <div className="text-2nd text-slate-400 text-xs">Past 12 Months</div>
-    </div>
+// --- HELPER: Trend Chart (Dynamic) ---
+const TrendChart = ({ signals }: { signals?: { type: string, value: string, description: string }[] }) => {
+  // Default fallback if no signals
+  const primarySignal = signals?.[0] || { value: "+122% Growth", description: "Search Interest" };
 
-    {/* Chart Area */}
-    <div className="relative h-40 w-full">
-      {/* Grid Lines */}
-      <div className="absolute inset-0 flex flex-col justify-between text-slate-300">
-        <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
-        <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
-        <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
+  return (
+    <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-baseline gap-3">
+          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">{primarySignal.description}</h4>
+          <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold">{primarySignal.value}</span>
+        </div>
+        <div className="text-2nd text-slate-400 text-xs">Past 12 Months</div>
       </div>
 
-      {/* The Line (Simulated Path) */}
-      <svg viewBox="0 0 100 40" className="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2"
-          fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2 V40 H0 Z"
-          fill="url(#gradient)" stroke="none"
-        />
-      </svg>
-    </div>
+      {/* Chart Area */}
+      <div className="relative h-40 w-full">
+        {/* Grid Lines */}
+        <div className="absolute inset-0 flex flex-col justify-between text-slate-300">
+          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
+          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
+          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
+        </div>
 
-    {/* X-Axis */}
-    <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
-      <span>2022</span>
-      <span>2023</span>
-      <span>2024</span>
-      <span>2025</span>
+        {/* The Line (Simulated Path) */}
+        <svg viewBox="0 0 100 40" className="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2"
+            fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2 V40 H0 Z"
+            fill="url(#gradient)" stroke="none"
+          />
+        </svg>
+      </div>
+
+      {/* X-Axis */}
+      <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
+        <span>2022</span>
+        <span>2023</span>
+        <span>2024</span>
+        <span>2025</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- HELPER: Score Card ---
 const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
@@ -264,7 +269,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                       {selectedIdea.description}
                     </p>
 
-                    <TrendChart />
+                    <TrendChart signals={selectedIdea.validation.signals} />
 
                     <div>
                       <h3 className="text-xl font-bold text-slate-900 mb-4 font-serif">Deep Dive Analysis</h3>
@@ -281,9 +286,9 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                     {/* Score Grid */}
                     <div className="grid grid-cols-2 gap-4">
                       <ScoreCard label="Opportunity" score={Math.min(9, Math.floor(selectedIdea.score.total / 10))} subLabel="Exceptional" colorClass="bg-emerald-500" />
-                      <ScoreCard label="Problem" score={8} subLabel="Severe Pain" colorClass="bg-red-500" />
-                      <ScoreCard label="Feasibility" score={selectedIdea.score.talent || 7} subLabel="Challenging" colorClass="bg-blue-500" />
-                      <ScoreCard label="Why Now" score={9} subLabel="Perfect Timing" colorClass="bg-orange-500" />
+                      <ScoreCard label="Problem" score={selectedIdea.score.profit || 8} subLabel="High Value" colorClass="bg-red-500" />
+                      <ScoreCard label="Feasibility" score={selectedIdea.score.talent || 7} subLabel="Your Skills" colorClass="bg-blue-500" />
+                      <ScoreCard label="Why Now" score={selectedIdea.score.demand || 9} subLabel="Market Timing" colorClass="bg-orange-500" />
                     </div>
 
                     {/* Business Fit Card */}
@@ -343,21 +348,21 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                       <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
                       <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lead Magnet</h5>
                       <h4 className="font-bold text-slate-900 mb-2">Free Tool / Guide</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.mvpStep}</p>
+                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.leadMagnet || selectedIdea.blueprint.mvpStep}</p>
                     </div>
                     {/* Step 2 */}
                     <div className="relative pl-8 border-l-2 border-slate-100">
                       <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">2</span>
                       <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Frontend Offer</h5>
                       <h4 className="font-bold text-slate-900 mb-2">Workshop / Course</h4>
-                      <p className="text-sm text-slate-600">Low ticket ($49-$99) product to solve the immediate "Why Now" pain point.</p>
+                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.frontendOffer || "Low ticket ($49-$99) product to solve the immediate pain point."}</p>
                     </div>
                     {/* Step 3 */}
                     <div className="relative pl-8 border-l-2 border-slate-100">
                       <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
                       <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Core Offer</h5>
                       <h4 className="font-bold text-slate-900 mb-2">Recurring Service</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.title} Subscription ($29/mo) or High Ticket Consulting.</p>
+                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.coreOffer || `${selectedIdea.title} Subscription ($29/mo) or High Ticket Consulting.`}</p>
                     </div>
                   </div>
                 </div>

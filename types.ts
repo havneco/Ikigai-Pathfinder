@@ -71,6 +71,11 @@ export interface MarketOpportunity {
     whyYou: string;
     dayInLife: string;
     mvpStep: string;
+    valueLadder: {
+      leadMagnet: string;
+      frontendOffer: string;
+      coreOffer: string;
+    };
     executionPlan: string[]; // List of specific steps
   };
   launchpad: LaunchpadAction[];

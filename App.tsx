@@ -8,7 +8,7 @@ import LegalPages from './components/LegalPages';
 import SynthesisScreen from './components/SynthesisScreen';
 import { generateIkigaiAnalysis } from './services/geminiService';
 import { supabase } from './lib/supabaseClient';
-import { Loader2, LogIn, Crown, X } from 'lucide-react';
+import { Loader2, LogIn, Crown, X, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const App = () => {
@@ -83,83 +83,7 @@ const App = () => {
     return () => clearTimeout(timer);
   }, [step]);
 
-  // --- AUTH & DATA LOADING ---
-  useEffect(() => {
-    let mounted = true;
-
-    const handleSession = async (session: any) => {
-      if (!mounted) return;
-
-      // 1. No User
-      if (!session?.user) {
-        if (userRef.current) {
-          // Logout detected
-          setUser(null);
-          setIkigaiData({ love: [], goodAt: [], worldNeeds: [], paidFor: [] });
-          setResult(null);
-          setStep(Step.WELCOME);
-          setIsPro(false);
-          userRef.current = null;
-        }
-        setIsSessionLoading(false);
-        return;
-      }
-
-      // 2. Same User (Duplicate Event)
-      if (userRef.current === session.user.id) {
-        setIsSessionLoading(false);
-        checkForPaymentSuccess(session.user.id);
-        return;
-      }
-
-      // 3. New User Login
-      userRef.current = session.user.id;
-      setIsSessionLoading(true);
-
-      try {
-        setUser({
-          name: session.user.user_metadata.full_name || 'User',
-          email: session.user.email || '',
-          photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`
-        });
-
-        // Parallel Fetch
-        await Promise.all([
-          fetchUserProfile(session.user.id),
-          fetchLatestResult(session.user.id)
-        ]);
-
-        checkForPaymentSuccess(session.user.id);
-      } catch (err) {
-        console.error("Error loading session data", err);
-      } finally {
-        if (mounted) setIsSessionLoading(false);
-      }
-    };
-
-    // Initialize
-    supabase.auth.getSession().then(({ data: { session } }) => handleSession(session)).catch(e => {
-      console.error("Get Session Failed", e);
-      setIsSessionLoading(false);
-    });
-
-    // Force Pro for development/demo purposes
-    setIsPro(true); // This line forces the state variable `isPro` to true.
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
-
-    fetchProCount();
-
-    return () => { mounted = false; subscription.unsubscribe(); };
-  }, []);
-
-  const resetApp = async () => {
-    setIsSessionLoading(true);
-    await supabase.auth.signOut();
-    localStorage.clear();
-    window.location.reload();
-  };
-
+  // --- HELPERS (Defined before useEffect) ---
   const checkForPaymentSuccess = async (userId: string) => {
     const url = window.location.href;
     if (url.includes('success=true') || url.includes('success=1') || url.includes('#success=true')) {
@@ -169,7 +93,6 @@ const App = () => {
           setIsPro(true);
           setShowSuccessModal(true);
           triggerConfettiLoop();
-          // Clean URL
           const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
           window.history.replaceState({ path: newUrl }, '', newUrl);
         }
@@ -196,7 +119,9 @@ const App = () => {
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data } = await supabase.from('profiles').select('is_pro').eq('id', userId).maybeSingle();
-      if (data) setIsPro(data.is_pro || false);
+      if (data) {
+        setIsPro(data.is_pro || false);
+      }
     } catch (e) { console.error("Profile fetch error", e); }
   };
 
@@ -215,6 +140,84 @@ const App = () => {
         setStep(Step.RESULT);
       }
     } catch (e) { console.error("Result fetch error", e); }
+  };
+
+  // --- AUTH & DATA LOADING ---
+  useEffect(() => {
+    let mounted = true;
+
+    const handleSession = async (session: any) => {
+      if (!mounted) return;
+
+      // 1. No User
+      if (!session?.user) {
+        if (userRef.current) {
+          // Logout detected
+          setUser(null);
+          setIkigaiData({ love: [], goodAt: [], worldNeeds: [], paidFor: [] });
+          setResult(null);
+          setStep(Step.WELCOME);
+          setIsPro(false);
+          userRef.current = null;
+        }
+        setIsSessionLoading(false);
+        return;
+      }
+
+      // 2. Load User Data (Always refresh on session init to be safe)
+      userRef.current = session.user.id;
+      // Only show loading if we are actually switching users or starting up
+      // setIsSessionLoading(true); // removed to prevent flicker loop
+
+      try {
+        setUser({
+          name: session.user.user_metadata.full_name || 'User',
+          email: session.user.email || '',
+          photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`
+        });
+
+        // Restore saved inputs from metadata if local is empty
+        const savedState = session.user.user_metadata?.saved_state;
+        if (savedState && ikigaiData.love.length === 0) {
+          setIkigaiData(savedState);
+        }
+
+        // Parallel Fetch
+        await Promise.all([
+          fetchUserProfile(session.user.id),
+          fetchLatestResult(session.user.id)
+        ]);
+
+        checkForPaymentSuccess(session.user.id);
+      } catch (err) {
+        console.error("Error loading session data", err);
+      } finally {
+        if (mounted) setIsSessionLoading(false);
+      }
+    };
+
+    // Initialize
+    supabase.auth.getSession().then(({ data: { session } }) => handleSession(session)).catch(e => {
+      console.error("Get Session Failed", e);
+      setIsSessionLoading(false);
+    });
+
+    // Force Pro for development/demo purposes
+    setIsPro(true);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
+
+    fetchProCount();
+
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, []);
+
+  const resetApp = async () => {
+    setIsSessionLoading(true);
+    await supabase.auth.signOut();
+    localStorage.clear();
+    setIkigaiData({ love: [], goodAt: [], worldNeeds: [], paidFor: [] }); // Clear state immediately
+    window.location.href = '/'; // Hard reload to clear everything
   };
 
   // --- WIZARD LOGIC ---
@@ -243,6 +246,7 @@ const App = () => {
       // 3. Save to DB in Background (Fire & Forget)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
+        // Save Result
         supabase.from('ikigai_results').insert({
           user_id: currentUser.id,
           statement: analysis.statement,
@@ -252,7 +256,14 @@ const App = () => {
           market_ideas: analysis.marketIdeas,
           sources: analysis.sources
         }).then(({ error }) => {
-          if (error) console.error("Background save failed:", error);
+          if (error) console.error("Background save result failed:", error);
+        });
+
+        // Save State (Inputs) to User Metadata (No schema change needed)
+        supabase.auth.updateUser({
+          data: { saved_state: ikigaiData }
+        }).then(({ error }) => {
+          if (error) console.error("Background save inputs failed:", error);
         });
       }
     } catch (err) {
@@ -373,15 +384,28 @@ const App = () => {
               <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 text-slate-900">Discover Your Ikigai</h1>
               <p className="text-xl text-slate-600 mb-10 leading-relaxed">Find your purpose with AI-driven market analysis.</p>
               {user ? (
-                <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-10 py-4 bg-slate-900 text-white text-lg rounded-full font-medium hover:scale-105 transition-transform">
-                  {result ? 'Enter Dashboard' : 'Start Analysis'}
-                </button>
+                <div className="flex flex-col items-center gap-4">
+                  <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-10 py-4 bg-slate-900 text-white text-lg rounded-full font-medium hover:scale-105 transition-transform">
+                    {result ? 'Enter Dashboard' : 'Start Analysis'}
+                  </button>
+                  {!result && ikigaiData.love.length > 0 && (
+                    <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
+                      Resume Analysis <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div className="flex flex-col items-center gap-4">
                   <button onClick={handleLogin} className="px-8 py-3 bg-white text-slate-800 border border-slate-200 shadow-md text-lg rounded-full font-medium hover:bg-slate-50 flex items-center gap-3 w-64 justify-center">
                     {isLoggingIn ? <Loader2 className="animate-spin" /> : 'Sign in with Google'}
                   </button>
-                  <button onClick={handleNext} className="text-slate-500 text-sm hover:underline">Continue as Guest</button>
+                  {ikigaiData.love.length > 0 ? (
+                    <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
+                      Resume Analysis <ArrowRight size={14} />
+                    </button>
+                  ) : (
+                    <button onClick={handleNext} className="text-slate-500 text-sm hover:underline">Continue as Guest</button>
+                  )}
                 </div>
               )}
             </div>
@@ -396,33 +420,38 @@ const App = () => {
               <a href="mailto:syewhite@gmail.com" className="hover:text-slate-600 transition-colors">Support: syewhite@gmail.com</a>
             </div>
           </div>
-        )}
+        )
+        }
 
-        {[Step.LOVE, Step.GOOD_AT, Step.WORLD_NEEDS, Step.PAID_FOR].includes(step) && (
-          <div className="w-full max-w-xl h-[600px]">
-            <WizardStep
-              title={step === Step.LOVE ? "What You Love" : step === Step.GOOD_AT ? "What You Are Good At" : step === Step.WORLD_NEEDS ? "What The World Needs" : "What You Can Be Paid For"}
-              description={step === Step.LOVE ? "Passions & Hobbies" : step === Step.GOOD_AT ? "Skills & Talents" : step === Step.WORLD_NEEDS ? "Causes & Problems" : "Marketable Skills"}
-              category={step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"}
-              colorClass={step === Step.LOVE ? "bg-[#FF6B6B]" : step === Step.GOOD_AT ? "bg-[#4ECDC4]" : step === Step.WORLD_NEEDS ? "bg-[#45B7D1]" : "bg-[#F7B731]"}
-              items={ikigaiData[step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]}
-              setItems={(items) => setIkigaiData({ ...ikigaiData, [step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]: items })}
-              onNext={handleNext}
-              onBack={step !== Step.LOVE ? () => setStep(Object.values(Step)[Object.values(Step).indexOf(step) - 1] as Step) : undefined}
-              context={ikigaiData}
-            />
-          </div>
-        )}
+        {
+          [Step.LOVE, Step.GOOD_AT, Step.WORLD_NEEDS, Step.PAID_FOR].includes(step) && (
+            <div className="w-full max-w-xl h-[600px]">
+              <WizardStep
+                title={step === Step.LOVE ? "What You Love" : step === Step.GOOD_AT ? "What You Are Good At" : step === Step.WORLD_NEEDS ? "What The World Needs" : "What You Can Be Paid For"}
+                description={step === Step.LOVE ? "Passions & Hobbies" : step === Step.GOOD_AT ? "Skills & Talents" : step === Step.WORLD_NEEDS ? "Causes & Problems" : "Marketable Skills"}
+                category={step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"}
+                colorClass={step === Step.LOVE ? "bg-[#FF6B6B]" : step === Step.GOOD_AT ? "bg-[#4ECDC4]" : step === Step.WORLD_NEEDS ? "bg-[#45B7D1]" : "bg-[#F7B731]"}
+                items={ikigaiData[step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]}
+                setItems={(items) => setIkigaiData({ ...ikigaiData, [step === Step.LOVE ? "love" : step === Step.GOOD_AT ? "goodAt" : step === Step.WORLD_NEEDS ? "worldNeeds" : "paidFor"]: items })}
+                onNext={handleNext}
+                onBack={step !== Step.LOVE ? () => setStep(Object.values(Step)[Object.values(Step).indexOf(step) - 1] as Step) : undefined}
+                context={ikigaiData}
+              />
+            </div>
+          )
+        }
 
-        {step === Step.ANALYZING && (
-          <div className="w-full h-full flex items-center justify-center">
-            <SynthesisScreen onSkip={handleSkipAnalysis} />
-          </div>
-        )}
+        {
+          step === Step.ANALYZING && (
+            <div className="w-full h-full flex items-center justify-center">
+              <SynthesisScreen onSkip={handleSkipAnalysis} />
+            </div>
+          )
+        }
 
         {error && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-6 py-4 rounded-xl shadow-xl">{error}</div>}
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 
