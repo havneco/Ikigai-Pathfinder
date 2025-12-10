@@ -143,6 +143,9 @@ const App = () => {
       setIsSessionLoading(false);
     });
 
+    // Force Pro for development/demo purposes
+    setIsPro(true); // This line forces the state variable `isPro` to true.
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
 
     fetchProCount();
