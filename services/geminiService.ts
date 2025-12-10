@@ -37,7 +37,10 @@ export const generateIkigaiAnalysis = async (data: IkigaiState): Promise<IkigaiR
       })
     });
 
-    if (!response.ok) throw new Error("Analysis failed");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error ${response.status}: ${errorText.substring(0, 100)}`);
+    }
     const result = await response.json();
 
     // Normalize Result (ensure fields exist)
@@ -49,12 +52,12 @@ export const generateIkigaiAnalysis = async (data: IkigaiState): Promise<IkigaiR
       roadmap: result.roadmap || [],
       sources: result.sources || []
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating analysis", error);
     // Return empty fallback/error state
     return {
       statement: "Analysis Error",
-      description: "We could not connect to the analysis engine.",
+      description: `Connection Failed: ${error.message || "Unknown error"}`,
       intersectionPoints: { passion: "", mission: "", profession: "", vocation: "" },
       marketIdeas: [], roadmap: [], sources: []
     }

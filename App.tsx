@@ -37,6 +37,26 @@ const App = () => {
 
   const userRef = useRef<string | null>(null);
 
+  // --- LOCAL STORAGE PERSISTENCE (AUTO-SAVE/LOAD) ---
+  useEffect(() => {
+    // 1. Load Data on Mount
+    const savedData = localStorage.getItem('ikigaiData');
+    if (savedData) {
+      try {
+        setIkigaiData(JSON.parse(savedData));
+      } catch (e) {
+        console.error("Failed to parse saved ikigai data", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // 2. Save Data on Change (Debounced slightly by React batching)
+    if (ikigaiData.love.length || ikigaiData.goodAt.length || ikigaiData.worldNeeds.length || ikigaiData.paidFor.length) {
+      localStorage.setItem('ikigaiData', JSON.stringify(ikigaiData));
+    }
+  }, [ikigaiData]);
+
   // --- SAFETY TIMEOUT (GLOBAL LOADING) ---
   useEffect(() => {
     const timer = setTimeout(() => {
