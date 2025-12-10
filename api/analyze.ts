@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
   maxDuration: 60,
 };
 
@@ -187,18 +187,12 @@ export default async function handler(req: Request) {
     }
 
     return new Response("Unknown Type", { status: 400 });
-  }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-}
-      }
-    }
-
-return new Response("Unknown Type", { status: 400 });
 
   } catch (error: any) {
-  return new Response(JSON.stringify({
-    error: error.message,
-    _version: "2.4-fix-parsing",
-    tip: "If you see this, the new parser is live but failing."
-  }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-}
+    return new Response(JSON.stringify({
+      error: error.message,
+      _version: "2.4-fix-parsing",
+      tip: "If you see this, the new parser is live but failing."
+    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
 }
