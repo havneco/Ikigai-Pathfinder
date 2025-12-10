@@ -83,8 +83,7 @@ export default async function handler(req: Request) {
   {
     "statement": "1-sentence 'I help X do Y' statement.",
     "description": "2-sentence why fit.",
-    "intersectionPoints": { "passion": "...", "mission": "...", "profession": "...", "vocation": "..." },
-    "roadmap": [ { "phase": "Validation", "action": "First Sale", "details": "How." } ]
+    "intersectionPoints": { "passion": "...", "mission": "...", "profession": "...", "vocation": "..." }
   }
 
   RULES:
