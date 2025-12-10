@@ -31,35 +31,59 @@ export const MarketCard: React.FC<MarketCardProps> = ({ idea, onOpenCopilot, onC
                     </div>
                 </div>
 
-                {/* The Wedge Injection */}
+                {/* The Wedge Injection (Safe Check) */}
                 <div className="mb-6 cursor-pointer" onClick={onClick}>
-                    {idea.blueprint.theWedge && <WedgeCard wedge={idea.blueprint.theWedge} />}
+                    {idea.blueprint?.theWedge ? (
+                        <WedgeCard wedge={idea.blueprint.theWedge} />
+                    ) : (
+                        <div className="animate-pulse flex space-x-4 p-4 border border-dashed border-gray-200 rounded-lg bg-gray-50">
+                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    {/* Validation Signals */}
+                    {/* Validation Signals (Safe Check) */}
                     <div>
                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Validation</h4>
-                        <SignalTerminal signals={idea.validation.signals} />
+                        {idea.validation?.signals ? (
+                            <SignalTerminal signals={idea.validation.signals} />
+                        ) : (
+                            <div className="space-y-2 animate-pulse">
+                                <div className="h-8 bg-gray-100 rounded w-full"></div>
+                                <div className="h-8 bg-gray-100 rounded w-full"></div>
+                                <div className="text-xs text-indigo-400 font-medium mt-2">Running Deep Scan...</div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Metrics */}
+                    {/* Metrics (Safe Check) */}
                     <div className="space-y-3">
                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Metrics</h4>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
-                            <Coins className="text-emerald-500" size={18} />
-                            <div>
-                                <div className="text-xs text-gray-500">Revenue Potential</div>
-                                <div className="font-bold text-gray-900 dark:text-white">{idea.validation.revenuePotential}</div>
+                        {idea.validation ? (
+                            <>
+                                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+                                    <Coins className="text-emerald-500" size={18} />
+                                    <div>
+                                        <div className="text-xs text-gray-500">Revenue Potential</div>
+                                        <div className="font-bold text-gray-900 dark:text-white">{idea.validation.revenuePotential}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+                                    <Clock className="text-blue-500" size={18} />
+                                    <div>
+                                        <div className="text-xs text-gray-500">Why Now</div>
+                                        <div className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">{idea.validation.whyNow}</div>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-2 animate-pulse">
+                                <div className="h-10 bg-gray-100 rounded w-full"></div>
+                                <div className="h-10 bg-gray-100 rounded w-full"></div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
-                            <Clock className="text-blue-500" size={18} />
-                            <div>
-                                <div className="text-xs text-gray-500">Why Now</div>
-                                <div className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">{idea.validation.whyNow}</div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 

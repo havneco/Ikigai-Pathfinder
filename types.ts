@@ -59,14 +59,14 @@ export interface MarketOpportunity {
     demand: number; // 0-10
     profit: number; // 0-10
   };
-  validation: {
+  validation?: {
     whyNow: string;
     marketGap: string;
     signals: MarketSignal[];
     community: CommunitySignal[];
     revenuePotential: string; // "$$$" or "$1M-$5M ARR"
   };
-  blueprint: {
+  blueprint?: {
     role: string;
     whyYou: string;
     dayInLife: string;
@@ -78,7 +78,7 @@ export interface MarketOpportunity {
     };
     executionPlan: string[]; // List of specific steps
   };
-  launchpad: LaunchpadAction[];
+  launchpad?: LaunchpadAction[];
 }
 
 export interface IkigaiResult {

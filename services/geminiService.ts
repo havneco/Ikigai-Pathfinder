@@ -26,13 +26,13 @@ export const getSuggestions = async (
   }
 };
 
-export const generateIkigaiAnalysis = async (data: IkigaiState): Promise<IkigaiResult> => {
+export const generateCoreAnalysis = async (data: IkigaiState): Promise<IkigaiResult> => {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'analysis',
+        type: 'analysis_core',
         ikigaiData: data
       })
     });
@@ -43,7 +43,6 @@ export const generateIkigaiAnalysis = async (data: IkigaiState): Promise<IkigaiR
     }
     const result = await response.json();
 
-    // Normalize Result (ensure fields exist)
     return {
       statement: result.statement || "Your Ikigai",
       description: result.description || "Analysis generated.",
@@ -53,14 +52,27 @@ export const generateIkigaiAnalysis = async (data: IkigaiState): Promise<IkigaiR
       sources: result.sources || []
     };
   } catch (error: any) {
-    console.error("Error generating analysis", error);
-    // Return empty fallback/error state
-    return {
-      statement: "Analysis Error",
-      description: `Connection Failed: ${error.message || "Unknown error"}`,
-      intersectionPoints: { passion: "", mission: "", profession: "", vocation: "" },
-      marketIdeas: [], roadmap: [], sources: []
-    }
+    console.error("Error generating core analysis", error);
+    throw error;
+  }
+};
+
+export const enrichIdea = async (idea: any, ikigaiData: IkigaiState): Promise<any> => {
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'analysis_enrich',
+        ikigaiData: { ...ikigaiData, idea }
+      })
+    });
+
+    if (!response.ok) throw new Error("Failed to enrich idea");
+    return await response.json();
+  } catch (error) {
+    console.error("Error enriching idea", error);
+    return null; // Return null on failure so UI can handle it gracefully
   }
 };
 

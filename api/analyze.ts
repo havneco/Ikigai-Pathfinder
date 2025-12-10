@@ -13,6 +13,30 @@ const getAI = () => {
 };
 
 export default async function handler(req: Request) {
+  // Helper to clean JSON string
+  const cleanJsonString = (str: string) => {
+    if (!str) return "{}";
+    let text = String(str);
+    // Remove markdown code blocks
+    const markdownStart = text.match(/^\s*```(?:json)?\s*/i);
+    if (markdownStart) text = text.replace(/^\s*```(?:json)?\s*/i, "");
+    const markdownEnd = text.match(/\s*```\s*$/);
+    if (markdownEnd) text = text.replace(/\s*```\s*$/, "");
+
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start === -1 || end === -1) return text.trim();
+
+    let cleaning = text.substring(start, end + 1);
+    cleaning = cleaning.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+
+    const openCount = (cleaning.match(/{/g) || []).length;
+    const closeCount = (cleaning.match(/}/g) || []).length;
+    if (openCount > closeCount) cleaning += "}".repeat(openCount - closeCount);
+
+    return cleaning;
+  };
+
   if (req.method !== 'POST') {
     return new Response("Method Not Allowed", { status: 405 });
   }
@@ -44,11 +68,8 @@ export default async function handler(req: Request) {
       return new Response(JSON.stringify(JSON.parse(response.text || "[]")), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    // 2. FULL ANALYSIS MODE
-    if (type === 'analysis') {
-      const data = ikigaiData;
-      const model = "gemini-2.5-flash"; // Using fast model for demo, or switch to pro-preview if defined
-
+    // 2. CORE ANALYSIS MODE (Fast, Skeleton)
+    if (type === 'analysis_core') {
       const prompt = `
   CONTEXT:
   1. "love": ${JSON.stringify(ikigaiData.love)}
@@ -56,135 +77,94 @@ export default async function handler(req: Request) {
   3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
   4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
 
-  Generate a JSON analysis for the "Ikigai Pathfinder" persona.
+  Generate the CORE STRUCTURE of the "Ikigai Pathfinder" analysis.
   
-  OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
+  OUTPUT FORMAT (JSON ONLY):
   {
     "statement": "1-sentence 'I help X do Y' statement.",
     "description": "2-sentence why fit.",
-    "intersectionPoints": {
-       "passion": "Synthesis",
-       "mission": "Synthesis",
-       "profession": "Synthesis",
-       "vocation": "Synthesis"
-    },
+    "intersectionPoints": { "passion": "...", "mission": "...", "profession": "...", "vocation": "..." },
     "marketIdeas": [
       {
         "title": "Niche Title",
         "description": "2-sentence pitch.",
-        "score": 95,
+        "score": { "total": 85, "passion": 8, "talent": 9, "demand": 8, "profit": 9 },
         "revenuePotential": "$Xk/mo",
-        "whyNow": "Market trend.",
-        "validation": { 
-            "signals": [ 
-                { "source": "Reddit", "context": "r/saas", "signal": "Complaints about X", "sentiment": "Negative" },
-                { "source": "Market", "context": "Google Trends", "signal": "+200% Search Vol", "sentiment": "Positive" }
-            ],
-            "whyNow": "Specific timing."
-        },
-        "valueLadder": {
-           "leadMagnet": "Free tool",
-           "frontendOffer": "Low-ticket",
-           "coreOffer": "High-ticket"
-        },
-        "blueprint": {
-            "theWedge": "THE ENTRY POINT. Do not describe a product. Describe the first transaction (e.g. 'Sell a $50 audit').",
-            "launchpad": "System prompt."
-        }
+        "whyNow": "Brief trend."
       }
     ],
-    "roadmap": [
-       { "phase": "Validation", "action": "First Sale", "details": "How." }
-    ]
+    "roadmap": [ { "phase": "Validation", "action": "First Sale", "details": "How." } ]
   }
 
   RULES:
   - Generate 3 Market Ideas.
-  - BE DECISIVE. Data > Vibes.
-  - "theWedge" MUST be a specific, tiny service/product to start THIS WEEKEND.
-  - NO MARKDOWN (\`\`\`json). RAW JSON ONLY.
+  - OMIT 'validation', 'blueprint', and 'launchpad' fields (we will fetch them later).
+  - Model: gemini-2.0-flash-exp. Speed is priority.
+  - NO MARKDOWN.
   `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: prompt,
+        config: { responseMimeType: "application/json" } // No tools for speed
+      });
+      // ... processing handled by existing cleanJsonString below ...
+      const cleanedText = cleanJsonString(response.text || "{}");
+      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // 3. ENRICH MODE (Deep, Per Idea)
+    if (type === 'analysis_enrich') {
+      const { idea } = ikigaiData; // Passed from frontend loop
+      const prompt = `
+      Analyze this specific business idea:
+      TITLE: ${idea.title}
+      DESC: ${idea.description}
+
+      Generate the DEEP DATA (Validation, Blueprint, Launchpad).
+      Use Google Search if needed to find REAL signals.
+
+      OUTPUT FORMAT (JSON ONLY):
+      {
+        "validation": {
+          "whyNow": "Detailed timing analysis.",
+          "marketGap": "The missing piece.",
+          "signals": [
+            { "source": "Reddit", "context": "r/saas", "signal": "Specific complaint", "sentiment": "Negative" },
+            { "source": "Google Trends", "context": "Keyword", "signal": "Rising trend", "sentiment": "Positive" }
+          ],
+          "community": [ { "platform": "Reddit", "count": "10k", "description": "r/niche", "score": 9 } ],
+          "revenuePotential": "Detailed calculation"
+        },
+        "blueprint": {
+          "role": "Founder Role",
+          "whyYou": "Fit check",
+          "dayInLife": "Routine",
+          "theWedge": "The specific $50-$500 first transaction/service.",
+          "valueLadder": { "leadMagnet": "...", "frontendOffer": "...", "coreOffer": "..." },
+          "executionPlan": ["Step 1", "Step 2", "Step 3"]
+        },
+        "launchpad": [
+           { "label": "Analyze Competitors", "tool": "Perplexity", "prompt": "..." }
+        ]
+      }
+      `;
 
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash-exp",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          tools: [{ googleSearch: {} }]
-        } // Force JSON
+          tools: [{ googleSearch: {} }] // Tools ENABLED for this step
+        }
       });
 
-      const text = response.text || "{}";
-      console.log("Raw AI Response:", text); // Debug log
-
-      // Helper to clean JSON string
-      const cleanJsonString = (str: string) => {
-        if (!str) return "{}";
-
-        // 1. Convert to string and basic trim
-        let text = String(str);
-
-        // 2. Remove markdown code blocks if present (start and end)
-        // Detect ```json or ``` at start
-        const markdownStart = text.match(/^\s*```(?:json)?\s*/i);
-        if (markdownStart) {
-          text = text.replace(/^\s*```(?:json)?\s*/i, "");
-        }
-        // Detect trailing ``` 
-        const markdownEnd = text.match(/\s*```\s*$/);
-        if (markdownEnd) {
-          text = text.replace(/\s*```\s*$/, "");
-        }
-
-        // 3. Find the FIRST '{' and LAST '}' to isolate the object strictly
-        const start = text.indexOf('{');
-        const end = text.lastIndexOf('}');
-
-        if (start === -1 || end === -1) {
-          // Fallback: If no braces found, return original (will likely fail parse but provides useful error)
-          return text.trim();
-        }
-
-        let cleaning = text.substring(start, end + 1);
-
-        // 4. Remove comments
-        cleaning = cleaning.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
-
-        // 5. Handle Truncation (Auto-close)
-        const openCount = (cleaning.match(/{/g) || []).length;
-        const closeCount = (cleaning.match(/}/g) || []).length;
-        if (openCount > closeCount) {
-          cleaning += "}".repeat(openCount - closeCount);
-        }
-
-        return cleaning;
-      };
-
-
-
-      const cleanedText = cleanJsonString(text);
-
-      try {
-        const parsed = JSON.parse(cleanedText);
-        return new Response(JSON.stringify(parsed), { headers: { 'Content-Type': 'application/json' } });
-      } catch (parseError) {
-        console.error("JSON Parse 1 Failed:", parseError);
-        // Fallback: Aggressive sanitization
-        try {
-          const aggressiveClean = cleanedText
-            .replace(/\\(?![\\"{}[\]])/g, "\\\\");
-
-          const parsed2 = JSON.parse(aggressiveClean);
-          return new Response(JSON.stringify(parsed2), { headers: { 'Content-Type': 'application/json' } });
-        } catch (e2) {
-          return new Response(JSON.stringify({
-            error: "Failed to parse AI response",
-            raw: text,
-            cleaned: cleanedText
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-        }
-      }
+      const cleanedText = cleanJsonString(response.text || "{}");
+      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
     }
+
+    // The original parsing logic for 'analysis' is now removed
+    // and cleanJsonString is hoisted.
 
     return new Response("Unknown Type", { status: 400 });
 
