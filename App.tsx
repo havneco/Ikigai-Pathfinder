@@ -138,6 +138,15 @@ const App = () => {
           sources: data.sources
         });
         setStep(Step.RESULT);
+      } else {
+        // Fallback to Local Cache (Save Costs)
+        const cached = localStorage.getItem('ikigaiResult');
+        if (cached) {
+          try {
+            setResult(JSON.parse(cached));
+            setStep(Step.RESULT);
+          } catch (e) { console.error("Cached result parse error", e); }
+        }
       }
     } catch (e) { console.error("Result fetch error", e); }
   };
@@ -246,7 +255,7 @@ const App = () => {
       // 3. Save to DB in Background (Fire & Forget)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
-        // Save Result
+        // Save Result to DB
         supabase.from('ikigai_results').insert({
           user_id: currentUser.id,
           statement: analysis.statement,
@@ -259,13 +268,18 @@ const App = () => {
           if (error) console.error("Background save result failed:", error);
         });
 
-        // Save State (Inputs) to User Metadata (No schema change needed)
+        // Save State (Inputs) to User Metadata
         supabase.auth.updateUser({
           data: { saved_state: ikigaiData }
         }).then(({ error }) => {
           if (error) console.error("Background save inputs failed:", error);
         });
       }
+
+      // Save Result to LocalStorage (Cache to prevent costly re-runs)
+      localStorage.setItem('ikigaiResult', JSON.stringify(analysis));
+
+    } catch (err) {
     } catch (err) {
       console.error(err);
       setError("Analysis failed. Please try again.");
