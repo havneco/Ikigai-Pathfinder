@@ -120,18 +120,37 @@ export default async function handler(req: Request) {
 
       const text = response.text || "{}";
 
-      // STRICT JSON EXTRACTION
-      // Find the first '{' and the last '}'
+      // ROBUST JSON EXTRACTION (Backwards Search)
       const firstCurly = text.indexOf('{');
-      const lastCurly = text.lastIndexOf('}');
+      if (firstCurly === -1) throw new Error("No JSON start found");
 
-      if (firstCurly === -1 || lastCurly === -1) {
-        throw new Error("No JSON object found in response");
+      let lastCurly = text.lastIndexOf('}');
+      let validJson = null;
+
+      // Iterate backwards to find the largest valid JSON object
+      while (lastCurly > firstCurly) {
+        const potentialJson = text.substring(firstCurly, lastCurly + 1);
+        try {
+          // Verify if this chunk is valid JSON
+          JSON.parse(potentialJson);
+          // If valid, we found it!
+          validJson = potentialJson;
+          break;
+        } catch (e) {
+          // If invalid, verify if it's just markdown residue or actual broken JSON
+          // Move to the next closing brace
+          lastCurly = text.lastIndexOf('}', lastCurly - 1);
+        }
       }
 
-      const cleanedText = text.substring(firstCurly, lastCurly + 1);
+      if (!validJson) {
+        // Fallback: Try regex cleanup if structural search failed
+        const cleaned = text.replace(/```json\s*|\s*```/g, "").trim();
+        // If this fails, let the client handle the error, but at least we tried
+        return new Response(cleaned, { headers: { 'Content-Type': 'application/json' } });
+      }
 
-      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+      return new Response(validJson, { headers: { 'Content-Type': 'application/json' } });
     }
 
     return new Response("Unknown Type", { status: 400 });
