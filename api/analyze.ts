@@ -121,39 +121,46 @@ export default async function handler(req: Request) {
       const cleanJsonString = (str: string) => {
         if (!str) return "{}";
 
-        // 1. Locate the JSON block
-        const firstBrace = str.indexOf('{');
-        // Scan for the *last* logical closing brace, handling truncation
-        // But for now, extract substring first
-        let cleaned = str;
-        if (firstBrace >= 0) {
-          cleaned = str.substring(firstBrace);
+        // 1. Convert to string and basic trim
+        let text = String(str);
+
+        // 2. Remove markdown code blocks if present (start and end)
+        // Detect ```json or ``` at start
+        const markdownStart = text.match(/^\s*```(?:json)?\s*/i);
+        if (markdownStart) {
+          text = text.replace(/^\s*```(?:json)?\s*/i, "");
+        }
+        // Detect trailing ``` 
+        const markdownEnd = text.match(/\s*```\s*$/);
+        if (markdownEnd) {
+          text = text.replace(/\s*```\s*$/, "");
         }
 
-        // 2. Count Braces to handle truncation / markdown suffix
-        const openCount = (cleaned.match(/{/g) || []).length;
-        const closeCount = (cleaned.match(/}/g) || []).length;
+        // 3. Find the FIRST '{' and LAST '}' to isolate the object strictly
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
 
-        // If extracted string has suffix garbage (like markdown fences), trim it
-        const lastBrace = cleaned.lastIndexOf('}');
-        if (lastBrace > 0 && closeCount >= openCount) {
-          cleaned = cleaned.substring(0, lastBrace + 1);
+        if (start === -1 || end === -1) {
+          // Fallback: If no braces found, return original (will likely fail parse but provides useful error)
+          return text.trim();
         }
 
-        // 3. Auto-Close if Truncated
+        let cleaning = text.substring(start, end + 1);
+
+        // 4. Remove comments
+        cleaning = cleaning.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+
+        // 5. Handle Truncation (Auto-close)
+        const openCount = (cleaning.match(/{/g) || []).length;
+        const closeCount = (cleaning.match(/}/g) || []).length;
         if (openCount > closeCount) {
-          cleaned += "}".repeat(openCount - closeCount);
+          cleaning += "}".repeat(openCount - closeCount);
         }
 
-        // 4. Cleanup (Comments, Newlines, etc)
-        cleaned = cleaned
-          .replace(/\/\/.*$/gm, "") // Remove JS comments //
-          .replace(/\n/g, " ")
-          .replace(/\r/g, "")
-          .replace(/\t/g, " ");
-
-        return cleaned;
+        return cleaning;
       };
+
+
 
       const cleanedText = cleanJsonString(text);
 

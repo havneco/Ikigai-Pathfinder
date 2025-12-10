@@ -353,7 +353,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                       <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
                       <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lead Magnet</h5>
                       <h4 className="font-bold text-slate-900 mb-2">Free Tool / Guide</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.leadMagnet || selectedIdea.blueprint.mvpStep}</p>
+                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.leadMagnet || selectedIdea.blueprint.theWedge}</p>
                     </div>
                     {/* Step 2 */}
                     <div className="relative pl-8 border-l-2 border-slate-100">
