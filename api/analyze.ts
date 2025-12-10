@@ -119,7 +119,17 @@ export default async function handler(req: Request) {
       });
 
       const text = response.text || "{}";
-      const cleanedText = text.replace(/```json\s*|\s*```/g, "").trim(); // Remove Markdown formatting
+
+      // STRICT JSON EXTRACTION
+      // Find the first '{' and the last '}'
+      const firstCurly = text.indexOf('{');
+      const lastCurly = text.lastIndexOf('}');
+
+      if (firstCurly === -1 || lastCurly === -1) {
+        throw new Error("No JSON object found in response");
+      }
+
+      const cleanedText = text.substring(firstCurly, lastCurly + 1);
 
       return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
     }
