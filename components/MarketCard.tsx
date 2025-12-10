@@ -1,83 +1,86 @@
 import React from 'react';
+import { ChevronRight, Rocket, Clock, Coins } from 'lucide-react';
 import { MarketOpportunity } from '../types';
-import { TrendingUp, Users, DollarSign, ArrowRight } from 'lucide-react';
+import { WedgeCard } from './WedgeCard';
+import { SignalTerminal } from './SignalTerminal';
 
 interface MarketCardProps {
     idea: MarketOpportunity;
+    onOpenCopilot?: (context: string) => void;
     onClick: () => void;
 }
 
-const MarketCard: React.FC<MarketCardProps> = ({ idea, onClick }) => {
-    const getScoreColor = (score: number) => {
-        if (score >= 90) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
-        if (score >= 80) return 'text-indigo-600 bg-indigo-50 border-indigo-100';
-        return 'text-amber-600 bg-amber-50 border-amber-100';
+export const MarketCard: React.FC<MarketCardProps> = ({ idea, onOpenCopilot, onClick }) => {
+    const handleLaunchpad = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card click
+        if (onOpenCopilot) {
+            onOpenCopilot(`INITIALIZING LAUNCHPAD FOR: ${idea.title}\n\nBLUEPRINT:\n${JSON.stringify(idea.blueprint, null, 2)}\n\nPlease guide me through the first step of the execution plan.`);
+        }
     };
 
     return (
-        <div
-            onClick={onClick}
-            className="group relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col"
-        >
-            {/* Header / Score Badge */}
-            <div className="p-5 flex justify-between items-start">
-                <div className="flex-1">
-                    <h3 className="font-serif font-bold text-xl text-slate-900 leading-tight group-hover:text-indigo-700 transition-colors">
-                        {idea.title}
-                    </h3>
-                </div>
-                <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl border ${getScoreColor(idea.score.total)}`}>
-                    <span className="text-xl font-bold leading-none">{idea.score.total}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wide opacity-80">Match</span>
-                </div>
-            </div>
-
-            {/* Description */}
-            <div className="px-5 pb-4 flex-1">
-                <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
-                    {idea.description}
-                </p>
-            </div>
-
-            {/* Metrics Grid */}
-            <div className="px-5 py-4 border-t border-slate-50 bg-slate-50/50 grid grid-cols-2 gap-4">
-                <div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-                        <DollarSign size={12} /> Revenue
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow group">
+            <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                    <div onClick={onClick} className="cursor-pointer">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 transition-colors">{idea.title}</h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">{idea.description}</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 truncate">
-                        {idea.validation.revenuePotential || 'N/A'}
-                    </p>
-                </div>
-                <div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-                        <TrendingUp size={12} /> Why Now
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+                        <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{idea.score.total}</span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 truncate" title={idea.validation.whyNow}>
-                        {idea.validation.whyNow.split(' ').slice(0, 3).join(' ')}...
-                    </p>
                 </div>
-            </div>
 
-            {/* Footer Action */}
-            <div className="p-4 bg-white border-t border-slate-100 flex justify-between items-center group-hover:bg-slate-50 transition-colors">
-                <div className="flex -space-x-2 overflow-hidden">
-                    {/* Fake Avatars for "Community" vibe if real data missing, or use signal counts */}
-                    {idea.validation.community?.length > 0 ? (
-                        <div className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                            <Users size={14} className="text-indigo-500" />
-                            {idea.validation.community[0].count}
+                {/* The Wedge Injection */}
+                <div className="mb-6 cursor-pointer" onClick={onClick}>
+                    {idea.blueprint.theWedge && <WedgeCard wedge={idea.blueprint.theWedge} />}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* Validation Signals */}
+                    <div>
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Validation</h4>
+                        <SignalTerminal signals={idea.validation.signals} />
+                    </div>
+
+                    {/* Metrics */}
+                    <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Metrics</h4>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+                            <Coins className="text-emerald-500" size={18} />
+                            <div>
+                                <div className="text-xs text-gray-500">Revenue Potential</div>
+                                <div className="font-bold text-gray-900 dark:text-white">{idea.validation.revenuePotential}</div>
+                            </div>
                         </div>
-                    ) : (
-                        <span className="text-xs text-slate-400 italic">Emerging Market</span>
-                    )}
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+                            <Clock className="text-blue-500" size={18} />
+                            <div>
+                                <div className="text-xs text-gray-500">Why Now</div>
+                                <div className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">{idea.validation.whyNow}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    View Blueprint <ArrowRight size={14} />
-                </span>
+
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-5 mt-5 flex justify-between items-center">
+                    <button
+                        onClick={onClick}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm font-medium flex items-center gap-1"
+                    >
+                        View Full Blueprint <ChevronRight size={16} />
+                    </button>
+
+                    <button
+                        onClick={handleLaunchpad}
+                        className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90 hover:scale-105 transition-all shadow-md hover:shadow-lg"
+                    >
+                        <Rocket size={16} />
+                        Initialize Launchpad
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
-
 export default MarketCard;

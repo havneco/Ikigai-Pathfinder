@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IkigaiResult, User, MarketOpportunity, IkigaiState } from '../types';
 import VennDiagram from './VennDiagram';
-import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight } from 'lucide-react';
+import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown } from 'lucide-react';
 import { chatWithCopilot } from '../services/geminiService';
 import MarketCard from './MarketCard';
 import ReactMarkdown from 'react-markdown';
@@ -160,7 +160,7 @@ const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
 );
 
 // 4. Market Widget (Enhanced Modal)
-export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void }> = ({ result, isPro, onUpgrade }) => {
+export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
   const [selectedIdea, setSelectedIdea] = useState<MarketOpportunity | null>(null);
 
   if (!isPro) {
@@ -216,7 +216,12 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {result.marketIdeas.map((idea, idx) => (
-              <MarketCard key={idx} idea={idea} onClick={() => setSelectedIdea(idea)} />
+              <MarketCard
+                key={idx}
+                idea={idea}
+                onClick={() => setSelectedIdea(idea)}
+                onOpenCopilot={onOpenCopilot}
+              />
             ))}
           </div>
         )}
@@ -392,7 +397,8 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
 };
 
 // 5. Chat Widget
-export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikigaiData }: { result: IkigaiResult, isPro: boolean, onUpgrade: () => void, user: User | null, slotsLeft?: number, ikigaiData: IkigaiState }) => {
+// 5. Chat Widget
+export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikigaiData, externalContext }: { result: IkigaiResult, isPro: boolean, onUpgrade: () => void, user: User | null, slotsLeft?: number, ikigaiData: IkigaiState, externalContext?: string | null }) => {
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model'; text: string }[]>([]);
   const [isChatting, setIsChatting] = useState(false);
@@ -400,26 +406,40 @@ export const ChatWidget = ({ result, isPro, onUpgrade, user, slotsLeft = 7, ikig
   const chatEndRef = useRef<HTMLDivElement>(null);
   const FREE_LIMIT = 3;
 
+  // Handle External Context (Launchpad)
+  useEffect(() => {
+    if (externalContext) {
+      handleChat(externalContext);
+    }
+  }, [externalContext]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory, isChatting]);
 
-  const handleChat = async () => {
-    if (!chatInput.trim()) return;
+  const handleChat = async (overrideInput?: string) => {
+    const textToSend = overrideInput || chatInput;
+    if (!textToSend.trim()) return;
+
     if (!isPro && messageCount >= FREE_LIMIT) {
       onUpgrade();
       return;
     }
 
-    const userMsg = chatInput;
-    setChatInput('');
+    if (!overrideInput) setChatInput(''); // Only clear input if manual
     setMessageCount(prev => prev + 1);
-    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+
+    // Don't show the massive raw Launchpad system prompt in UI if it's an override
+    const displayMsg = overrideInput ? "🚀 Initializing Launchpad Strategy..." : textToSend;
+
+    setChatHistory(prev => [...prev, { role: 'user', text: displayMsg }]);
     setIsChatting(true);
 
     try {
+      // If overrideInput is present, it contains the full prompt including the "INITIALIZING LAUNCHPAD" keyword
       const historyForApi = chatHistory.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
-      const response = await chatWithCopilot(historyForApi, userMsg, result, ikigaiData, user?.name);
+      const response = await chatWithCopilot(historyForApi, textToSend, result, ikigaiData, user?.name);
+
       setChatHistory(prev => [...prev, { role: 'model', text: response }]);
     } catch (e) {
       console.error(e);

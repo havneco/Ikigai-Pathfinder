@@ -75,14 +75,20 @@ export default async function handler(req: Request) {
         "score": 95,
         "revenuePotential": "$Xk/mo",
         "whyNow": "Market trend.",
-        "validation": { "signals": [ { "type": "trend", "value": "+X%", "description": "Metric" } ] },
+        "validation": { 
+            "signals": [ 
+                { "source": "Reddit", "context": "r/saas", "signal": "Complaints about X", "sentiment": "Negative" },
+                { "source": "Market", "context": "Google Trends", "signal": "+200% Search Vol", "sentiment": "Positive" }
+            ],
+            "whyNow": "Specific timing."
+        },
         "valueLadder": {
            "leadMagnet": "Free tool",
            "frontendOffer": "Low-ticket",
            "coreOffer": "High-ticket"
         },
         "blueprint": {
-            "theWedge": "Smallest entry point.",
+            "theWedge": "THE ENTRY POINT. Do not describe a product. Describe the first transaction (e.g. 'Sell a $50 audit').",
             "launchpad": "System prompt."
         }
       }
@@ -94,7 +100,8 @@ export default async function handler(req: Request) {
 
   RULES:
   - Generate 3 Market Ideas.
-  - BE DECISIVE.
+  - BE DECISIVE. Data > Vibes.
+  - "theWedge" MUST be a specific, tiny service/product to start THIS WEEKEND.
   - NO MARKDOWN (\`\`\`json). RAW JSON ONLY.
   `;
 

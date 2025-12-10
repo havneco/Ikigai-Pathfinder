@@ -30,10 +30,10 @@ export interface SuggestionResponse {
 }
 
 export interface MarketSignal {
-  type: 'trend' | 'demand' | 'salary' | 'community';
-  value: string; // e.g., "Up 40%", "$120k/yr", "Active Subreddits"
-  description: string;
-  source?: string;
+  source: string; // e.g., "Reddit", "Glimpse", "Market Report"
+  context: string; // e.g., "r/saas", "Search Volume"
+  signal: string; // e.g., "Complaints about X", "+155% Growth"
+  sentiment: "Positive" | "Negative" | "Neutral"; // For color coding
 }
 
 export interface LaunchpadAction {
@@ -70,7 +70,7 @@ export interface MarketOpportunity {
     role: string;
     whyYou: string;
     dayInLife: string;
-    mvpStep: string;
+    theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
     valueLadder: {
       leadMagnet: string;
       frontendOffer: string;
