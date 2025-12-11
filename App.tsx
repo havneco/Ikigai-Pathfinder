@@ -222,9 +222,47 @@ const App = () => {
     });
 
     // Force Pro for development/demo purposes
-    setIsPro(true);
+    // setIsPro(true); // This line was removed as per the instruction's implied replacement logic
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setIsSessionLoading(true);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Founder',
+          isPro: true
+        });
+
+        // AUTO-LOAD: Check for existing analysis
+        try {
+          const { data: analysis, error } = await supabase
+            .from('analyses')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('last_updated', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (analysis && !error) {
+            console.log("Found existing analysis, restoring...");
+            setIkigaiData(analysis.ikigai_data);
+            setResult(analysis.result_data);
+            // Verify data integrity before skipping
+            if (analysis.result_data && analysis.result_data.statement) {
+              setStep(Step.RESULT);
+            }
+          }
+        } catch (err) {
+          console.error("Error loading analysis:", err);
+        }
+
+      } else {
+        setUser(null);
+        setStep(Step.WELCOME);
+      }
+      setIsSessionLoading(false);
+    });
 
     fetchProCount();
 
@@ -293,30 +331,48 @@ const App = () => {
         launchpad: []
       }));
       // Initial render with "Waiting" status
+
       setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
 
-      for (let i = 0; i < enrichedIdeas.length; i++) {
-        // Set Active Status
-        enrichedIdeas[i].analysisStatus = `Running Deep Market Scan (${i + 1}/${enrichedIdeas.length})...`;
-        setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
+      // Concurrent processing + Final Save
+      const finalIdeas = await Promise.all(enrichedIdeas.map(async (idea, index) => {
+        // Delay for staggering
+        await new Promise(r => setTimeout(r, index * 1500));
 
-        let deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
+        try {
+          // Update Status
+          setResult(prev => {
+            if (!prev) return null;
+            const newIdeas = [...prev.marketIdeas];
+            newIdeas[index] = { ...newIdeas[index], analysisStatus: "Deep Search..." };
+            return { ...prev, marketIdeas: newIdeas };
+          });
 
-        // Retry logic or Fallback
-        if (!deepData) {
-          console.warn(`Enrichment failed for ${enrichedIdeas[i].title}. Retrying...`);
-          enrichedIdeas[i].analysisStatus = `Retrying Deep Scan (${i + 1}/${enrichedIdeas.length})...`;
-          setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
-          // Simple retry
-          deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
-        }
+          // Fetch Deep Data
+          const deepData = await enrichIdea(idea, ikigaiData); // Pass ikigaiData here
 
-        if (deepData) {
-          enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData, analysisStatus: undefined }; // Clear status on success
-        } else {
-          // FALLBACK: If it still fails, populate with "Analysis Failed" data so loader stops
-          enrichedIdeas[i] = {
-            ...enrichedIdeas[i],
+          // Merge Data
+          const completeIdea = {
+            ...idea,
+            ...deepData,
+            score: deepData?.score ? deepData.score : idea.score, // Update score if refined
+            analysisStatus: undefined // Clear status
+          };
+
+          // Update State
+          setResult(prev => {
+            if (!prev) return null;
+            const newIdeas = [...prev.marketIdeas];
+            newIdeas[index] = completeIdea;
+            return { ...prev, marketIdeas: newIdeas };
+          });
+
+          return completeIdea;
+        } catch (e) {
+          console.error("Idea enrich failed", e);
+          // FALLBACK: If it still fails, populate with "Analysis Partial/Failed" data so loader stops
+          return {
+            ...idea,
             analysisStatus: "Analysis Partial/Failed",
             validation: {
               whyNow: "Market data unavailable at this moment.",
