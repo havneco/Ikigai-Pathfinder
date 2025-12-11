@@ -64,31 +64,34 @@ export interface Score {
   };
 }
 
+export interface ValidationData {
+  whyNow: string;
+  marketGap: string;
+  signals: MarketSignal[];
+  community: CommunitySignal[];
+  competitors: { name: string; weakness: string; price: string; url?: string }[];
+  revenuePotential: string; // "$$$" or "$1M-$5M ARR"
+}
+
 export interface MarketOpportunity {
   title: string;
   description: string;
   score: Score;
-  validation?: {
-    whyNow: string;
-    marketGap: string;
-    signals: MarketSignal[];
-    community: CommunitySignal[];
-    revenuePotential: string; // "$$$" or "$1M-$5M ARR"
+};
+blueprint ?: {
+  role: string;
+  whyYou: string;
+  dayInLife: string;
+  theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
+  valueLadder: {
+    leadMagnet: string;
+    frontendOffer: string;
+    coreOffer: string;
   };
-  blueprint?: {
-    role: string;
-    whyYou: string;
-    dayInLife: string;
-    theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
-    valueLadder: {
-      leadMagnet: string;
-      frontendOffer: string;
-      coreOffer: string;
-    };
-    executionPlan: string[]; // List of specific steps
-  };
-  launchpad?: LaunchpadAction[];
-  analysisStatus?: string; // e.g. "Waiting...", "Analyzing...", "Deep Scan Complete"
+  executionPlan: string[]; // List of specific steps
+};
+launchpad ?: LaunchpadAction[];
+analysisStatus ?: string; // e.g. "Waiting...", "Analyzing...", "Deep Scan Complete"
 }
 
 export interface IkigaiResult {

@@ -325,6 +325,7 @@ const App = () => {
           revenuePotential: (idea as any).revenuePotential || "Estimating...",
           signals: [],
           community: [],
+          competitors: [],
           trendCurve: [20, 25, 30, 40, 35, 45, 50, 60, 55, 70, 80, 90]
         },
         blueprint: { role: "Founder", whyYou: "Matching...", dayInLife: "Thinking...", theWedge: "Calculating...", executionPlan: [], valueLadder: { leadMagnet: "", frontendOffer: "", coreOffer: "" } },

@@ -152,6 +152,8 @@ export default async function handler(req: any, res: any) {
       Use Google Search if needed to find REAL signals.
       Refine the 'score' based on the search findings (adjusting for reality vs initial hypothesis).
       Ensure 'trendCurve' contains 12 integers (0-100) representing the last year's trend.
+      REQUIREMENT: For 'Search Volume' and 'Growth', you MUST try to find a real data source URL. Include it in the \`source\` field.
+      REQUIREMENT: Find 2 major competitors. Identify their pricing and their specific weakness relative to this user's 'Good At' or 'Passion'.
 
       OUTPUT FORMAT (JSON ONLY):
       {
@@ -169,10 +171,14 @@ export default async function handler(req: any, res: any) {
           "marketGap": "The missing piece.",
           "revenuePotential": "Detailed calculation ($X/mo)",
           "signals": [
-            { "type": "Search Volume", "value": "22k/mo", "description": "Strictly related keyword searches" },
-            { "type": "Market Growth", "value": "+120% YoY", "description": "Rising demand for Y solutions" }
+            { "type": "Search Volume", "value": "22k/mo", "description": "Strictly related keyword searches", "source": "https://ahrefs.com/blog/..." },
+            { "type": "Market Growth", "value": "+120% YoY", "description": "Rising demand for Y solutions", "source": "https://techcrunch.com/..." }
           ],
           "community": [ { "name": "r/target_audience", "url": "reddit.com/r/...", "size": "50k Members" } ],
+          "competitors": [
+            { "name": "Incumbent A", "price": "$49/mo", "weakness": "Complex UX, lacks personal touch", "url": "https://example.com" },
+            { "name": "Incumbent B", "price": "$1000 One-time", "weakness": "Too expensive for beginners", "url": "https://agency.com" }
+          ],
           "trendCurve": [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100]
         },
         "blueprint": {

@@ -5,6 +5,7 @@ import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon
 import { chatWithCopilot } from '../services/geminiService';
 import MarketCard from './MarketCard';
 import FinancialSimulator from './FinancialSimulator';
+import CompetitorWidget from './CompetitorWidget';
 import ReactMarkdown from 'react-markdown';
 
 // Wrapper for Stripe Button
@@ -290,6 +291,9 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
           <div className="xl:col-span-7 space-y-8">
             {/* Trend Chart */}
             <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
+
+            {/* Competitors (The Fight) */}
+            <CompetitorWidget competitors={selectedIdea.validation?.competitors} />
 
             {/* Deep Dive Text */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200">
