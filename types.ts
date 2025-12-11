@@ -79,6 +79,7 @@ export interface MarketOpportunity {
     executionPlan: string[]; // List of specific steps
   };
   launchpad?: LaunchpadAction[];
+  analysisStatus?: string; // e.g. "Waiting...", "Analyzing...", "Deep Scan Complete"
 }
 
 export interface IkigaiResult {
