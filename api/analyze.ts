@@ -14,27 +14,22 @@ const getAI = () => {
 
 export default async function handler(req: any, res: any) {
   // Helper to clean JSON string
+  // Helper to clean JSON string
   const cleanJsonString = (str: string) => {
     if (!str) return "{}";
     let text = String(str);
-    // Remove markdown code blocks
-    const markdownStart = text.match(/^\s*```(?:json)?\s*/i);
-    if (markdownStart) text = text.replace(/^\s*```(?:json)?\s*/i, "");
-    const markdownEnd = text.match(/\s*```\s*$/);
-    if (markdownEnd) text = text.replace(/\s*```\s*$/, "");
 
+    // 1. Remove Markdown code blocks
+    text = text.replace(/```json/g, "").replace(/```/g, "");
+
+    // 2. Find first '{' and last '}'
     const start = text.indexOf('{');
     const end = text.lastIndexOf('}');
-    if (start === -1 || end === -1) return text.trim();
 
-    let cleaning = text.substring(start, end + 1);
-    cleaning = cleaning.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+    if (start === -1 || end === -1) return "{}"; // No JSON object found
 
-    const openCount = (cleaning.match(/{/g) || []).length;
-    const closeCount = (cleaning.match(/}/g) || []).length;
-    if (openCount > closeCount) cleaning += "}".repeat(openCount - closeCount);
-
-    return cleaning;
+    // 3. Extract purely the JSON part
+    return text.substring(start, end + 1);
   };
 
   if (req.method !== 'POST') {
