@@ -277,7 +277,7 @@ const App = () => {
       setResult(prev => prev ? ({ ...prev, marketIdeas: initialIdeas }) : null);
 
       // 4. Stream Phase C: Deep Enrichment (The Spiral)
-      // 4. Stream Phase C: Deep Enrichment (The Spiral)
+
       const enrichedIdeas = initialIdeas.map(idea => ({ ...idea, analysisStatus: "Waiting in queue..." }));
       // Initial render with "Waiting" status
       setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
