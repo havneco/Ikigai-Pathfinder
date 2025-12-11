@@ -349,6 +349,42 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
           </div>
         </div>
 
+        {/* FULL WIDTH: Strategic Analysis Stack */}
+        <div className="space-y-8 mt-12 mb-12">
+
+          {/* 1. Competitors (The Fight) */}
+          <CompetitorWidget competitors={selectedIdea.validation?.competitors} />
+
+          {/* 2. Strategic Validation (Deep Dive) */}
+          <div className="bg-white p-8 rounded-2xl border border-slate-200">
+            <h3 className="font-bold text-slate-900 mb-6 text-lg">Strategic Validation</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-slate-600">
+              <div className="flex gap-4">
+                <div className="min-w-[4px] bg-orange-400 rounded-full h-full"></div>
+                <div>
+                  <strong className="block text-slate-900 mb-2 text-base">Why Now?</strong>
+                  <p className="leading-relaxed">{selectedIdea.validation?.whyNow || "Analyzing market timing..."}</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="min-w-[4px] bg-blue-400 rounded-full h-full"></div>
+                <div>
+                  <strong className="block text-slate-900 mb-2 text-base">The Market Gap</strong>
+                  <p className="leading-relaxed">{selectedIdea.validation?.marketGap || "Searching for blue ocean..."}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. The Plan ($10k/mo) */}
+          <FinancialSimulator
+            initialPrice={selectedIdea.blueprint?.pricing?.minPrice || 50}
+            initialConversion={selectedIdea.blueprint?.pricing?.estimatedConversion || 0.02}
+            model={selectedIdea.blueprint?.pricing?.model || "Subscription"}
+          />
+
+        </div>
+
         {/* Content */}
         <div className="flex-1 relative z-10 text-center md:text-left">
           <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
