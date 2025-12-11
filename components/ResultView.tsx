@@ -92,87 +92,67 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
 
 // --- HELPER: Trend Chart (Dynamic) ---
 const TrendChart = ({ signals, data }: { signals?: { type: string, value: string, description: string }[], data?: number[] }) => {
-  // Default fallback if no signals
-  const primarySignal = signals?.[0] || { value: "+122% Growth", description: "Search Interest" };
+  const TrendChart = ({ signals, data }: { signals: any[], data?: number[] }) => {
+    const points = data && data.length > 0 ? data : [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100];
 
-  // Clean Data or Default Curve
-  const points = (data && data.length >= 2) ? data : [20, 25, 40, 35, 50, 45, 60, 55, 70, 80, 85, 95];
+    // Bezier Smoothing Logic
+    const generateCurve = (points: number[]) => {
+      // Normalization
+      const height = 100; // SVG space
+      const width = 300;
+      const max = Math.max(...points, 100);
 
-  // Generate SVG Path
-  const generateSmoothPath = (points: number[]) => {
-    const max = Math.max(...points, 100);
-    // Normalize to 0-100 x, 0-40 y
-    const width = 100;
-    const height = 40;
+      const formatted = points.map((p, i) => ({
+        x: (i / (points.length - 1)) * width,
+        y: height - (p / max) * height * 0.8 - 10 // Padding
+      }));
 
-    // X spacing
-    const stepX = width / (points.length - 1);
+      // Build Curve (Catmull-Rom or Cubic Spline simplified)
+      // First point
+      let d = `M ${formatted[0].x},${formatted[0].y}`;
 
-    // Map points to coordinates
-    const coords = points.map((p, i) => {
-      const x = i * stepX;
-      // Y is inverted (0 is top), so (1 - value/max) * height
-      // But we want 0 at bottom (40), 100 at top (0)
-      // Actually value is 0-100.
-      const normalizedY = (1 - (p / 100)) * (height - 5) + 2; // Keep some padding
-      return [x, normalizedY];
-    });
+      for (let i = 0; i < formatted.length - 1; i++) {
+        const p0 = i > 0 ? formatted[i - 1] : formatted[i];
+        const p1 = formatted[i];
+        const p2 = formatted[i + 1];
+        const p3 = i < formatted.length - 2 ? formatted[i + 2] : p2;
 
-    if (coords.length === 0) return "";
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
 
-    // Build Path String (Simple Line for now, could be bezier)
-    // L commands
-    let d = `M ${coords[0][0]},${coords[0][1]}`;
-    for (let i = 1; i < coords.length; i++) {
-      // Simple smoothing: Bezier would be better but L is fine for "Real" look sometimes
-      // Let's do simple quadratic bezier approximation?
-      // Or just straight lines? "Real" graphs are often straight lines.
-      // But user liked the curvy one.
-      // Let's stick to Catmull-Rom or just straight for reliability first.
-      d += ` L ${coords[i][0]},${coords[i][1]}`;
-    }
-    return d;
-  };
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
 
-  const pathData = generateSmoothPath(points);
+        d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+      }
 
-  // Select signals to display
-  const displayedSignals = signals && signals.length > 0 ? signals.slice(0, 2) : [{ type: "Growth", value: "+122%", description: "Search Interest" }];
+      // Fill Path (Line + corners to bottom)
+      const fillPath = `${d} L ${width},${height} L 0,${height} Z`;
 
-  return (
-    <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex gap-8">
-          {displayedSignals.map((sig, i) => (
+      return { line: d, fill: fillPath };
+    };
+
+    const { line, fill } = generateCurve(points);
+
+    // Select signals
+    const displayedSignals = signals && signals.length > 0 ? signals.slice(0, 2) : [{ type: "Growth", value: "+122%", description: "Search Interest" }];
+
+    return (
+      <div className="w-full h-72 bg-white rounded-3xl border border-slate-100 p-8 relative overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-8 relative z-10">
+          <div className="flex gap-10">
+            {displayedSignals.map((sig, i) => (
             <div key={i}>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{sig.type || "Metric"}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{sig.type || "Metric"}</div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black text-slate-800">{sig.value}</span>
-                <span className="text-slate-300 cursor-help text-xs" title={sig.description}>ⓘ</span>
+                <span className="text-2xl font-black text-slate-800 tracking-tight">{sig.value}</span>
                 {(sig as any).source && (
-                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-600 ml-0.5 transition-colors" title="View Source">
-                    <ExternalLink size={12} />
+                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 p-1 rounded-full transition-colors" title="View Source">
+                    <ExternalLink size={10} />
                   </a>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="text-2nd text-slate-400 text-xs">Past 12 Months</div>
-      </div>
-
-      {/* Chart Area */}
-      <div className="relative h-40 w-full">
-        {/* Grid Lines */}
-        <div className="absolute inset-0 flex flex-col justify-between text-slate-300">
-          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
-          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
-          <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
-        </div>
-
-        {/* The Line (Dynamic) */}
-        <svg viewBox="0 0 100 40" className="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none">
-          <defs>
             <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
@@ -186,227 +166,227 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
             fill="url(#gradient)" stroke="none"
           />
         </svg>
-      </div>
+        </div>
 
-      {/* X-Axis */}
-      <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
-        <span>1y ago</span>
-        <span>6m ago</span>
-        <span>3m ago</span>
-        <span>Now</span>
+        {/* X-Axis */}
+        <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
+          <span>1y ago</span>
+          <span>6m ago</span>
+          <span>3m ago</span>
+          <span>Now</span>
+        </div>
+      </div>
+    );
+  };
+
+  // --- HELPER: Score Card ---
+  const ScoreCard = ({ label, score, colorClass, subLabel, explanation }: any) => (
+    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group hover:shadow-md transition-all">
+      <div className={`absolute top-0 left-0 w-1 h-full ${colorClass}`}></div>
+      <div className="flex justify-between items-start">
+        <h5 className="text-sm font-bold text-slate-700">{label}</h5>
+        <span className="text-xs text-slate-400 cursor-help" title={explanation || `${label} Score: ${score}/10. Represents ${subLabel}.`}>ⓘ</span>
+      </div>
+      <div>
+        <div className="text-3xl font-serif font-bold text-slate-900 mb-1">{score}</div>
+        <div className="text-xs font-medium text-slate-500">{subLabel}</div>
+      </div>
+      <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${score * 10}%` }}></div>
       </div>
     </div>
   );
-};
 
-// --- HELPER: Score Card ---
-const ScoreCard = ({ label, score, colorClass, subLabel, explanation }: any) => (
-  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group hover:shadow-md transition-all">
-    <div className={`absolute top-0 left-0 w-1 h-full ${colorClass}`}></div>
-    <div className="flex justify-between items-start">
-      <h5 className="text-sm font-bold text-slate-700">{label}</h5>
-      <span className="text-xs text-slate-400 cursor-help" title={explanation || `${label} Score: ${score}/10. Represents ${subLabel}.`}>ⓘ</span>
-    </div>
-    <div>
-      <div className="text-3xl font-serif font-bold text-slate-900 mb-1">{score}</div>
-      <div className="text-xs font-medium text-slate-500">{subLabel}</div>
-    </div>
-    <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-      <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${score * 10}%` }}></div>
-    </div>
-  </div>
-);
+  // 4. Market Widget (Tabbed Interface)
+  export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
+    const [activeTab, setActiveTab] = useState(0);
 
-// 4. Market Widget (Tabbed Interface)
-export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
-  const [activeTab, setActiveTab] = useState(0);
+    if (!result.marketIdeas || result.marketIdeas.length === 0) {
+      // Loading / Empty State
+      return (
+        <div className="w-full bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm animate-pulse">
+          <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto mb-4"></div>
+          <h3 className="text-lg font-bold text-slate-300">Generating Opportunities...</h3>
+        </div>
+      );
+    }
 
-  if (!result.marketIdeas || result.marketIdeas.length === 0) {
-    // Loading / Empty State
+    const selectedIdea = result.marketIdeas[activeTab];
+
     return (
-      <div className="w-full bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm animate-pulse">
-        <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto mb-4"></div>
-        <h3 className="text-lg font-bold text-slate-300">Generating Opportunities...</h3>
-      </div>
-    );
-  }
+      <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col min-h-[600px]">
 
-  const selectedIdea = result.marketIdeas[activeTab];
-
-  return (
-    <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col min-h-[600px]">
-
-      {/* TABS HEADER */}
-      <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md"><Sparkles size={18} /></div>
-          <span className="font-bold text-slate-900 tracking-tight">Market Opportunities</span>
-        </div>
-
-        <div className="flex p-1 bg-slate-200/50 rounded-xl">
-          {result.marketIdeas.map((idea, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveTab(idx)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === idx
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
-                }`}
-            >
-              Option {idx + 1}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => window.print()}
-          className="ml-auto hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-400 hover:text-slate-900 transition-colors shadow-sm print:hidden"
-        >
-          <Printer size={14} /> Save Plan
-        </button>
-      </div>
-
-      {/* CONTENT AREA (IdeaBrowser Inline) */}
-      <div className="flex-1 p-6 md:p-8 bg-slate-50/30">
-
-        {/* Title & Tags */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded">
-              Score: {selectedIdea.score?.total || 0}/100
-            </span>
-            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded">
-              {selectedIdea.analysisStatus ? (
-                <span className="flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> {selectedIdea.analysisStatus}</span>
-              ) : (
-                selectedIdea.validation?.revenuePotential || "High Revenue"
-              )}
-            </span>
-          </div>
-          <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2">
-            {selectedIdea.title}
-          </h2>
-          <p className="text-lg text-slate-600 leading-relaxed font-serif max-w-4xl">
-            {selectedIdea.description}
-          </p>
-        </div>
-
-        {/* 2-Column Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-
-          {/* LEFT: Charts & Analysis (7 cols) */}
-          {/* Trend Chart */}
-          <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
-
-          {/* The Wedge (Moved to Bottom) */}
-        </div>
-
-        {/* RIGHT: Scorecards & Plan (5 cols) */}
-        <div className="xl:col-span-5 space-y-6">
-
-          {/* Score Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" explanation={selectedIdea.score.explanations?.demand} />
-            <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" explanation={selectedIdea.score.explanations?.profit} />
-            <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" explanation={selectedIdea.score.explanations?.talent} />
-            <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" explanation={selectedIdea.score.explanations?.complexity} />
+        {/* TABS HEADER */}
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md"><Sparkles size={18} /></div>
+            <span className="font-bold text-slate-900 tracking-tight">Market Opportunities</span>
           </div>
 
-          {/* Execution Plan (Condensed) */}
-          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
-            <h4 className="font-bold flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
-              <Crown size={18} className="text-yellow-400" /> Execution Roadmap
-            </h4>
-            <div className="space-y-4">
-              {selectedIdea.blueprint.executionPlan.slice(0, 3).map((step, i) => (
-                <div key={i} className="flex gap-3 items-start text-sm">
-                  <span className="text-slate-500 font-mono">0{i + 1}</span>
-                  <p className="text-slate-300">{step}</p>
-                </div>
-              ))}
+          <div className="flex p-1 bg-slate-200/50 rounded-xl">
+            {result.marketIdeas.map((idea, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveTab(idx)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === idx
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                Option {idx + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => window.print()}
+            className="ml-auto hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-400 hover:text-slate-900 transition-colors shadow-sm print:hidden"
+          >
+            <Printer size={14} /> Save Plan
+          </button>
+        </div>
+
+        {/* CONTENT AREA (IdeaBrowser Inline) */}
+        <div className="flex-1 p-6 md:p-8 bg-slate-50/30">
+
+          {/* Title & Tags */}
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded">
+                Score: {selectedIdea.score?.total || 0}/100
+              </span>
+              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded">
+                {selectedIdea.analysisStatus ? (
+                  <span className="flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> {selectedIdea.analysisStatus}</span>
+                ) : (
+                  selectedIdea.validation?.revenuePotential || "High Revenue"
+                )}
+              </span>
             </div>
-            <button
-              onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
-              className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <Bot size={16} /> Initialize Launchpad
-            </button>
+            <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2">
+              {selectedIdea.title}
+            </h2>
+            <p className="text-lg text-slate-600 leading-relaxed font-serif max-w-4xl">
+              {selectedIdea.description}
+            </p>
           </div>
 
-        </div>
-      </div>
+          {/* 2-Column Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
 
-      {/* THE WEDGE (Bottom Full Width) */}
-      <div className="mt-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-        {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+            {/* LEFT: Charts & Analysis (7 cols) */}
+            {/* Trend Chart */}
+            <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
 
-        {/* Cute Pie Visual (Left) */}
-        <div className="w-32 h-32 shrink-0 relative animate-in zoom-in duration-700">
-          {/* SVG Pie Chart */}
-          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
-            <circle cx="50" cy="50" r="45" fill="#fff" stroke="#e2e8f0" strokeWidth="2" />
-            {/* The Slice (20% wedge) */}
-            <path d="M50,50 L50,5 A45,45 0 0,1 93,20 z" fill="#4f46e5" stroke="white" strokeWidth="2" />
-            {/* Center Dot */}
-            <circle cx="50" cy="50" r="6" fill="#312e81" />
-          </svg>
-          <div className="absolute top-0 right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
-            START HERE
+            {/* The Wedge (Moved to Bottom) */}
+          </div>
+
+          {/* RIGHT: Scorecards & Plan (5 cols) */}
+          <div className="xl:col-span-5 space-y-6">
+
+            {/* Score Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" explanation={selectedIdea.score.explanations?.demand} />
+              <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" explanation={selectedIdea.score.explanations?.profit} />
+              <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" explanation={selectedIdea.score.explanations?.talent} />
+              <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" explanation={selectedIdea.score.explanations?.complexity} />
+            </div>
+
+            {/* Execution Plan (Condensed) */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
+              <h4 className="font-bold flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
+                <Crown size={18} className="text-yellow-400" /> Execution Roadmap
+              </h4>
+              <div className="space-y-4">
+                {selectedIdea.blueprint.executionPlan.slice(0, 3).map((step, i) => (
+                  <div key={i} className="flex gap-3 items-start text-sm">
+                    <span className="text-slate-500 font-mono">0{i + 1}</span>
+                    <p className="text-slate-300">{step}</p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
+                className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <Bot size={16} /> Initialize Launchpad
+              </button>
+            </div>
+
           </div>
         </div>
 
-        {/* FULL WIDTH: Strategic Analysis Stack */}
-        <div className="space-y-8 mt-12 mb-12">
+        {/* THE WEDGE (Bottom Full Width) */}
+        <div className="mt-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          {/* Decorative Background */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
-          {/* 1. Competitors (The Fight) */}
-          <CompetitorWidget competitors={selectedIdea.validation?.competitors} />
-
-          {/* 2. Strategic Validation (Deep Dive) */}
-          <div className="bg-white p-8 rounded-2xl border border-slate-200">
-            <h3 className="font-bold text-slate-900 mb-6 text-lg">Strategic Validation</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-slate-600">
-              <div className="flex gap-4">
-                <div className="min-w-[4px] bg-orange-400 rounded-full h-full"></div>
-                <div>
-                  <strong className="block text-slate-900 mb-2 text-base">Why Now?</strong>
-                  <p className="leading-relaxed">{selectedIdea.validation?.whyNow || "Analyzing market timing..."}</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="min-w-[4px] bg-blue-400 rounded-full h-full"></div>
-                <div>
-                  <strong className="block text-slate-900 mb-2 text-base">The Market Gap</strong>
-                  <p className="leading-relaxed">{selectedIdea.validation?.marketGap || "Searching for blue ocean..."}</p>
-                </div>
-              </div>
+          {/* Cute Pie Visual (Left) */}
+          <div className="w-32 h-32 shrink-0 relative animate-in zoom-in duration-700">
+            {/* SVG Pie Chart */}
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
+              <circle cx="50" cy="50" r="45" fill="#fff" stroke="#e2e8f0" strokeWidth="2" />
+              {/* The Slice (20% wedge) */}
+              <path d="M50,50 L50,5 A45,45 0 0,1 93,20 z" fill="#4f46e5" stroke="white" strokeWidth="2" />
+              {/* Center Dot */}
+              <circle cx="50" cy="50" r="6" fill="#312e81" />
+            </svg>
+            <div className="absolute top-0 right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
+              START HERE
             </div>
           </div>
 
-          {/* 3. The Plan ($10k/mo) */}
-          <FinancialSimulator
-            initialPrice={selectedIdea.blueprint?.pricing?.minPrice || 50}
-            initialConversion={selectedIdea.blueprint?.pricing?.estimatedConversion || 0.02}
-            model={selectedIdea.blueprint?.pricing?.model || "Subscription"}
-          />
+          {/* FULL WIDTH: Strategic Analysis Stack */}
+          <div className="space-y-8 mt-12 mb-12">
 
-        </div>
+            {/* 1. Competitors (The Fight) */}
+            <CompetitorWidget competitors={selectedIdea.validation?.competitors} />
 
-        {/* Content */}
-        <div className="flex-1 relative z-10 text-center md:text-left">
-          <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
-            <Zap size={14} /> The Wedge Strategy
+            {/* 2. Strategic Validation (Deep Dive) */}
+            <div className="bg-white p-8 rounded-2xl border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-6 text-lg">Strategic Validation</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-slate-600">
+                <div className="flex gap-4">
+                  <div className="min-w-[4px] bg-orange-400 rounded-full h-full"></div>
+                  <div>
+                    <strong className="block text-slate-900 mb-2 text-base">Why Now?</strong>
+                    <p className="leading-relaxed">{selectedIdea.validation?.whyNow || "Analyzing market timing..."}</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="min-w-[4px] bg-blue-400 rounded-full h-full"></div>
+                  <div>
+                    <strong className="block text-slate-900 mb-2 text-base">The Market Gap</strong>
+                    <p className="leading-relaxed">{selectedIdea.validation?.marketGap || "Searching for blue ocean..."}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. The Plan ($10k/mo) */}
+            <FinancialSimulator
+              initialPrice={selectedIdea.blueprint?.pricing?.minPrice || 50}
+              initialConversion={selectedIdea.blueprint?.pricing?.estimatedConversion || 0.02}
+              model={selectedIdea.blueprint?.pricing?.model || "Subscription"}
+            />
+
           </div>
-          <h3 className="text-2xl font-serif font-bold text-indigo-900 mb-3">
-            Your "Trojan Horse" into the Market
-          </h3>
-          <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
-            "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
-          </p>
-        </div>
-      </div>
 
-    </div>
+          {/* Content */}
+          <div className="flex-1 relative z-10 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
+              <Zap size={14} /> The Wedge Strategy
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-indigo-900 mb-3">
+              Your "Trojan Horse" into the Market
+            </h3>
+            <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
+              "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
+            </p>
+          </div>
+        </div>
+
+      </div>
 
     </div >
   );
