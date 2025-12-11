@@ -180,6 +180,7 @@ export default async function handler(req: any, res: any) {
           "whyYou": "Fit check",
           "dayInLife": "Routine",
           "theWedge": "The specific $50-$500 first transaction/service.",
+          "pricing": { "model": "Subscription", "minPrice": 29, "maxPrice": 99, "estimatedConversion": 0.02 },
           "valueLadder": { "leadMagnet": "...", "frontendOffer": "...", "coreOffer": "..." },
           "executionPlan": ["Step 1", "Step 2", "Step 3"]
         },
