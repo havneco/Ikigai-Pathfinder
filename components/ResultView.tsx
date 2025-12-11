@@ -90,64 +90,93 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
   </div>
 );
 
-// --- HELPER: Trend Chart (Premium Upgrade) ---
+// --- HELPER: Trend Chart (Interactive Premium) ---
 const TrendChart = ({ signals, data }: { signals?: any[], data?: number[] }) => {
-  const points = data && data.length > 0 ? data : [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100];
+  const [activePoint, setActivePoint] = useState<{ x: number, y: number, value: number, index: number, label: string } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Bezier Smoothing Logic
-  const generateCurve = (points: number[]) => {
-    // Normalization
-    const height = 100; // SVG space
-    const width = 300;
-    const max = Math.max(...points, 100);
+  const rawPoints = data && data.length > 0 ? data : [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100];
+  const width = 300; // SVG ViewBox Width
+  const height = 100; // SVG ViewBox Height
 
-    const formatted = points.map((p, i) => ({
-      x: (i / (points.length - 1)) * width,
-      y: height - (p / max) * height * 0.8 - 10 // Padding
-    }));
+  // Pre-calculate coordinates & labels
+  const points = rawPoints.map((p, i) => ({
+    x: (i / (rawPoints.length - 1)) * width,
+    y: height - (p / Math.max(...rawPoints, 100)) * height * 0.8 - 10,
+    value: p,
+    label: i === rawPoints.length - 1 ? "Now" : `${rawPoints.length - 1 - i}mo ago`
+  }));
 
-    // Build Curve (Catmull-Rom or Cubic Spline simplified)
-    // First point
-    let d = `M ${formatted[0].x},${formatted[0].y}`;
+  // Path Generation
+  const generatePath = () => {
+    let d = `M ${points[0].x},${points[0].y}`;
 
-    for (let i = 0; i < formatted.length - 1; i++) {
-      const p0 = i > 0 ? formatted[i - 1] : formatted[i];
-      const p1 = formatted[i];
-      const p2 = formatted[i + 1];
-      const p3 = i < formatted.length - 2 ? formatted[i + 2] : p2;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = i > 0 ? points[i - 1] : points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = i < points.length - 2 ? points[i + 2] : p2;
 
       const cp1x = p1.x + (p2.x - p0.x) / 6;
       const cp1y = p1.y + (p2.y - p0.y) / 6;
-
       const cp2x = p2.x - (p3.x - p1.x) / 6;
       const cp2y = p2.y - (p3.y - p1.y) / 6;
 
       d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
     }
 
-    // Fill Path (Line + corners to bottom)
     const fillPath = `${d} L ${width},${height} L 0,${height} Z`;
-
     return { line: d, fill: fillPath };
   };
 
-  const { line, fill } = generateCurve(points);
+  const { line, fill } = generatePath();
 
   // Select signals
   const displayedSignals = signals && signals.length > 0 ? signals.slice(0, 2) : [{ type: "Growth", value: "+122%", description: "Search Interest" }];
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x relative to card
+    const chartWidth = rect.width;
+
+    // Convert DOM X to SVG X (0-300)
+    const svgX = (x / chartWidth) * width;
+
+    if (svgX < 0 || svgX > width) return;
+
+    // Find nearest point
+    let closest: typeof points[0] & { index: number } = { ...points[0], index: 0 };
+    let minDist = Infinity;
+
+    points.forEach((p, i) => {
+      const dist = Math.abs(p.x - svgX);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = { ...p, index: i };
+      }
+    });
+
+    setActivePoint(closest);
+  };
+
   return (
-    <div className="w-full h-72 glass-card rounded-3xl p-8 isolate">
+    <div
+      ref={containerRef}
+      className="w-full h-72 glass-card rounded-3xl p-8 isolate relative group cursor-crosshair"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setActivePoint(null)}
+    >
       {/* Header */}
-      <div className="flex justify-between items-start mb-8 relative z-10">
-        <div className="flex gap-10">
+      <div className="flex justify-between items-start mb-8 relative z-10 pointer-events-none">
+        <div className="flex gap-10 pointer-events-auto">
           {displayedSignals.map((sig, i) => (
             <div key={i}>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{sig.type || "Metric"}</div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-black text-slate-800 tracking-tight">{sig.value}</span>
                 {(sig as any).source && (
-                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 p-1 rounded-full transition-colors" title="View Source">
+                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 p-1 rounded-full transition-colors pointer-events-auto" title="View Source">
                     <ExternalLink size={10} />
                   </a>
                 )}
@@ -164,7 +193,7 @@ const TrendChart = ({ signals, data }: { signals?: any[], data?: number[] }) => 
       </div>
 
       {/* CHART SVG */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 w-full">
+      <div className="absolute bottom-0 left-0 right-0 h-48 w-full pointer-events-none">
         <svg viewBox="0 0 300 100" preserveAspectRatio="none" className="w-full h-full">
           <defs>
             <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
@@ -176,13 +205,40 @@ const TrendChart = ({ signals, data }: { signals?: any[], data?: number[] }) => 
           <path d={fill} fill="url(#gradient)" />
           {/* Line */}
           <path d={line} fill="none" stroke="#6366f1" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+
+          {/* INTERACTIVE ELEMENTS */}
+          {activePoint && (
+            <>
+              {/* Vertical Crosshair */}
+              <line x1={activePoint.x} y1={0} x2={activePoint.x} y2={100} stroke="#6366f1" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" vectorEffect="non-scaling-stroke" />
+              {/* Pulsing Dot */}
+              <circle cx={activePoint.x} cy={activePoint.y} r="4" fill="#6366f1" stroke="white" strokeWidth="2" />
+            </>
+          )}
         </svg>
 
-        {/* X-Axis Labels */}
-        <div className="absolute bottom-2 inset-x-0 flex justify-between px-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        {/* X-Axis Labels (Fade out on hover) */}
+        <div className={`absolute bottom-2 inset-x-0 flex justify-between px-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity ${activePoint ? 'opacity-0' : 'opacity-100'}`}>
           <span>12mo Ago</span>
           <span>Now</span>
         </div>
+
+        {/* Floating Tooltip */}
+        {activePoint && (
+          <div
+            className="absolute bg-slate-900/90 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl flex flex-col items-center z-50 transition-all duration-75 ease-out border border-white/10"
+            style={{
+              left: `${(activePoint.x / 300) * 100}%`,
+              top: `${(activePoint.y / 100) * 100}%`,
+              transform: 'translate(-50%, -120%)'
+            }}
+          >
+            <span className="font-bold text-sm tracking-tight">{activePoint.value} Interest</span>
+            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{activePoint.label}</span>
+            {/* Carrot */}
+            <div className="absolute w-2 h-2 bg-slate-900/90 rotate-45 -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-white/10"></div>
+          </div>
+        )}
       </div>
     </div>
   );
