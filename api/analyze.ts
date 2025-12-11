@@ -72,7 +72,13 @@ export default async function handler(req: any, res: any) {
   3. "worldNeeds": ${JSON.stringify(ikigaiData.worldNeeds)}
   4. "paidFor": ${JSON.stringify(ikigaiData.paidFor)}
 
-  Generate the HIGH-LEVEL STRATEGY for the "Ikigai Pathfinder".
+  Synthesize these 4 pillars into a unique, personal IKIGAI STATEMENT for this user.
+  
+  CRITICAL INSTRUCTION:
+  - Do NOT generate a generic statement about "helping people find their purpose".
+  - Do NOT mention "Ikigai Pathfinder" or the app itself.
+  - FOCUS specifically on the intersection of: ${JSON.stringify(ikigaiData.love)} + ${JSON.stringify(ikigaiData.goodAt)} + ${JSON.stringify(ikigaiData.paidFor)}.
+  - The statement must be a specific business or vocational mission (e.g. "I leverage AI to revolutionize luxury hospitality...").
   
   OUTPUT FORMAT (JSON ONLY):
   {
