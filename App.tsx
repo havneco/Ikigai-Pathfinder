@@ -289,11 +289,12 @@ const App = () => {
         }
 
         if (deepData) {
-          enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData };
+          enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData, analysisStatus: undefined }; // Clear status on success
         } else {
           // FALLBACK: If it still fails, populate with "Analysis Failed" data so loader stops
           enrichedIdeas[i] = {
             ...enrichedIdeas[i],
+            analysisStatus: "Analysis Partial/Failed",
             validation: {
               whyNow: "Market data unavailable at this moment.",
               marketGap: "Could not verify market gap.",

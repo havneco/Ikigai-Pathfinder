@@ -55,7 +55,7 @@ export const MarketCard: React.FC<MarketCardProps> = ({ idea, onOpenCopilot, onC
                                 <div className="h-8 bg-gray-100 rounded w-full"></div>
                                 <div className="text-xs text-indigo-400 font-medium mt-2">
                                     {/* If it takes too long (>30s), it might just be slow. But if data is null, we show loading. */}
-                                    Running Deep Scan...
+                                    {idea.analysisStatus || "Initializing Scan..."}
                                 </div>
                             </div>
                         )}
