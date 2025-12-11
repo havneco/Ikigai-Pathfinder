@@ -138,8 +138,8 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
     <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
       <div className="flex justify-between items-start mb-6">
         <div className="flex items-baseline gap-3">
-          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">{primarySignal.description}</h4>
-          <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold">{primarySignal.value}</span>
+          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider line-clamp-1 max-w-[200px]" title={primarySignal.description}>{primarySignal.description}</h4>
+          <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold shrink-0">{primarySignal.value}</span>
         </div>
         <div className="text-2nd text-slate-400 text-xs">Past 12 Months</div>
       </div>
@@ -173,10 +173,10 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
 
       {/* X-Axis */}
       <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
-        <span>2022</span>
-        <span>2023</span>
-        <span>2024</span>
-        <span>2025</span>
+        <span>1y ago</span>
+        <span>6m ago</span>
+        <span>3m ago</span>
+        <span>Now</span>
       </div>
     </div>
   );
@@ -188,7 +188,7 @@ const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
     <div className={`absolute top-0 left-0 w-1 h-full ${colorClass}`}></div>
     <div className="flex justify-between items-start">
       <h5 className="text-sm font-bold text-slate-700">{label}</h5>
-      <span className="text-xs text-slate-400 cursor-help">ⓘ</span>
+      <span className="text-xs text-slate-400 cursor-help" title={`${label} Score: ${score}/10. Represents ${subLabel}.`}>ⓘ</span>
     </div>
     <div>
       <div className="text-3xl font-serif font-bold text-slate-900 mb-1">{score}</div>
