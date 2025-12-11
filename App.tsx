@@ -277,13 +277,23 @@ const App = () => {
       setResult(prev => prev ? ({ ...prev, marketIdeas: initialIdeas }) : null);
 
       // 4. Stream Phase C: Deep Enrichment (The Spiral)
-      const enrichedIdeas = [...initialIdeas];
+      // 4. Stream Phase C: Deep Enrichment (The Spiral)
+      const enrichedIdeas = initialIdeas.map(idea => ({ ...idea, analysisStatus: "Waiting in queue..." }));
+      // Initial render with "Waiting" status
+      setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
+
       for (let i = 0; i < enrichedIdeas.length; i++) {
+        // Set Active Status
+        enrichedIdeas[i].analysisStatus = `Running Deep Market Scan (${i + 1}/${enrichedIdeas.length})...`;
+        setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
+
         let deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
 
         // Retry logic or Fallback
         if (!deepData) {
           console.warn(`Enrichment failed for ${enrichedIdeas[i].title}. Retrying...`);
+          enrichedIdeas[i].analysisStatus = `Retrying Deep Scan (${i + 1}/${enrichedIdeas.length})...`;
+          setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
           // Simple retry
           deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
         }
