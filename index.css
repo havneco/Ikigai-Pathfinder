@@ -7,6 +7,46 @@
 
 @layer base {
 
+  :root {
+    --bg-dot: #cbd5e1;
+    /* slate-300 */
+  }
+
+  /* DOT GRID BACKGROUND */
+  .bg-dot-grid {
+    background-size: 40px 40px;
+    background-image: radial-gradient(circle, var(--bg-dot) 1px, transparent 1px);
+    background-attachment: fixed;
+    /* Parallax-like fix */
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans bg-dot-grid min-h-screen selection:bg-indigo-500 selection:text-white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply tracking-tight;
+  }
+
+  /* Scrollbar Polish */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400;
+  }
+
   /* PRINT STYLES */
   @media print {
     @page {
@@ -20,7 +60,6 @@
       background: white !important;
     }
 
-    /* Hide UI Chrome */
     nav,
     header,
     footer,
@@ -29,13 +68,13 @@
       display: none !important;
     }
 
-    /* Layout Adjustments */
-    .h-screen {
-      height: auto !important;
-      overflow: visible !important;
+    .bg-dot-grid {
+      background-image: none !important;
     }
 
-    .overflow-hidden {
+    /* Clear dots for print */
+    .h-screen {
+      height: auto !important;
       overflow: visible !important;
     }
 
@@ -43,20 +82,101 @@
       position: static !important;
     }
   }
+}
+
+@layer utilities {
+
+  /* ANIMATIONS */
+  .animate-fade-up {
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  /* CYBER GLASS */
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_4px_30px_rgba(0, 0, 0, 0.03)] ring-1 ring-white/50;
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-slate-100 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-slate-200;
+  }
+
+  /* Highlight Top Edge */
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-80 pointer-events-none;
+  }
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media print {
+  @page {
+    margin: 0.5cm;
+    size: auto;
+  }
 
   body {
-    @apply bg-slate-50 text-slate-900 font-sans;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: white !important;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: 'Outfit', sans-serif;
-    /* Modern, geometric headings */
+  /* Hide UI Chrome */
+  nav,
+  header,
+  footer,
+  .chat-widget,
+  .print\:hidden {
+    display: none !important;
   }
+
+  /* Layout Adjustments */
+  .h-screen {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  .fixed {
+    position: static !important;
+  }
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Outfit', sans-serif;
+  /* Modern, geometric headings */
+}
 }
 
 @layer utilities {

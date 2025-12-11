@@ -138,7 +138,7 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
     const displayedSignals = signals && signals.length > 0 ? signals.slice(0, 2) : [{ type: "Growth", value: "+122%", description: "Search Interest" }];
 
     return (
-      <div className="w-full h-72 bg-white rounded-3xl border border-slate-100 p-8 relative overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
+      <div className="w-full h-72 glass-card rounded-3xl p-8 isolate">
         {/* Header */}
         <div className="flex justify-between items-start mb-8 relative z-10">
           <div className="flex gap-10">
