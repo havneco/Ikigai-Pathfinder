@@ -159,220 +159,146 @@ const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
   </div>
 );
 
-// 4. Market Widget (Enhanced Modal)
+// 4. Market Widget (Tabbed Interface)
 export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
-  const [selectedIdea, setSelectedIdea] = useState<MarketOpportunity | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
+  if (!result.marketIdeas || result.marketIdeas.length === 0) {
+    // Loading / Empty State
+    return (
+      <div className="w-full bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm animate-pulse">
+        <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto mb-4"></div>
+        <h3 className="text-lg font-bold text-slate-300">Generating Opportunities...</h3>
+      </div>
+    );
+  }
 
-  const avgScore = result.marketIdeas.length > 0
-    ? Math.round(result.marketIdeas.reduce((acc, curr) => acc + curr.score.total, 0) / result.marketIdeas.length)
-    : 0;
+  const selectedIdea = result.marketIdeas[activeTab];
 
   return (
-    <div className="h-full flex flex-col bg-slate-50/50 rounded-3xl border border-slate-200/50">
-      {/* Widget Header */}
-      <div className="px-6 py-4 flex justify-between items-center bg-white rounded-t-3xl border-b border-slate-100">
+    <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col min-h-[600px]">
+
+      {/* TABS HEADER */}
+      <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900">Market Opportunities</h3>
-            <p className="text-xs text-slate-500">AI-Validated Business Models</p>
-          </div>
+          <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md"><Sparkles size={18} /></div>
+          <span className="font-bold text-slate-900 tracking-tight">Market Opportunities</span>
         </div>
-        {avgScore > 0 && (
-          <div className="px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full">
-            Avg Match: {avgScore}%
-          </div>
-        )}
+
+        <div className="flex p-1 bg-slate-200/50 rounded-xl">
+          {result.marketIdeas.map((idea, idx) => (
+            <button
+              key={idx}
+              onClick={() => setActiveTab(idx)}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === idx
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              Option {idx + 1}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Widget Body */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {result.marketIdeas.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400">
-            <p>No market data yet. Click "Re-Analyze" to generate.</p>
+      {/* CONTENT AREA (IdeaBrowser Inline) */}
+      <div className="flex-1 p-6 md:p-8 bg-slate-50/30">
+
+        {/* Title & Tags */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded">
+              Score: {selectedIdea.score.total}/100
+            </span>
+            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded">
+              {selectedIdea.validation.revenuePotential || "High Revenue"}
+            </span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {result.marketIdeas.map((idea, idx) => (
-              <MarketCard
-                key={idx}
-                idea={idea}
-                onClick={() => setSelectedIdea(idea)}
-                onOpenCopilot={onOpenCopilot}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2">
+            {selectedIdea.title}
+          </h2>
+          <p className="text-lg text-slate-600 leading-relaxed font-serif max-w-4xl">
+            {selectedIdea.description}
+          </p>
+        </div>
 
-      {/* --- IDEABROWSER STYLE MODAL --- */}
-      {selectedIdea && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#FAFAFA] rounded-3xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl relative">
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
 
-            {/* Header */}
-            <div className="px-8 py-6 bg-white border-b border-slate-200 flex justify-between items-start sticky top-0 z-10 shadow-sm">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded border border-indigo-100">Idea Analysis</span>
-                  <span className="text-slate-400 text-xs">•</span>
-                  <span className="text-slate-400 text-xs">{new Date().toLocaleDateString()}</span>
+          {/* LEFT: Charts & Analysis (7 cols) */}
+          <div className="xl:col-span-7 space-y-8">
+            {/* Trend Chart */}
+            <TrendChart signals={selectedIdea.validation.signals} />
+
+            {/* Deep Dive Text */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-4">Strategic Validation</h3>
+              <div className="space-y-4 text-sm text-slate-600">
+                <div className="flex gap-4">
+                  <div className="min-w-[4px] bg-orange-400 rounded-full"></div>
+                  <div>
+                    <strong className="block text-slate-900 mb-1">Why Now?</strong>
+                    {selectedIdea.validation.whyNow}
+                  </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-serif font-black text-slate-900 leading-tight mb-2">
-                  {selectedIdea.title}
-                </h2>
-                {/* Tags Row */}
-                <div className="flex flex-wrap gap-2 text-xs font-medium">
-                  <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-100 flex items-center gap-1">⚡ Perfect Timing</span>
-                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 flex items-center gap-1">💰 High Margin</span>
-                  <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full border border-slate-200">+4 More</span>
+                <div className="flex gap-4">
+                  <div className="min-w-[4px] bg-blue-400 rounded-full"></div>
+                  <div>
+                    <strong className="block text-slate-900 mb-1">Market Gap</strong>
+                    {selectedIdea.validation.marketGap}
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 text-sm font-bold shadow-sm hover:bg-slate-50">Share</button>
-                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 flex items-center gap-2">
-                  <Zap size={16} fill="currentColor" /> Build This Idea
-                </button>
-                <button onClick={() => setSelectedIdea(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors ml-2">
-                  <X size={24} className="text-slate-400" />
-                </button>
               </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto bg-[#F8F9FA] p-8">
-              <div className="max-w-6xl mx-auto space-y-8">
-
-                {/* 1. Description & Score Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* LEFT: Description & Chart (7 cols) */}
-                  <div className="lg:col-span-7 space-y-8">
-                    <p className="text-lg text-slate-700 leading-relaxed font-serif">
-                      {selectedIdea.description}
-                    </p>
-
-                    <TrendChart signals={selectedIdea.validation.signals} />
-
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-4 font-serif">Deep Dive Analysis</h3>
-                      <div className="space-y-6 text-slate-600 leading-relaxed">
-                        <p><strong className="text-slate-900">Why Now:</strong> {selectedIdea.validation.whyNow}</p>
-                        <p><strong className="text-slate-900">Market Gap:</strong> {selectedIdea.validation.marketGap}</p>
-                        <p className="text-sm italic text-slate-500">*Analysis based on real-time search trends and market signals.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RIGHT: Score Grid & Metrics (5 cols) */}
-                  <div className="lg:col-span-5 space-y-6">
-                    {/* Score Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <ScoreCard label="Opportunity" score={Math.min(9, Math.floor(selectedIdea.score.total / 10))} subLabel="Exceptional" colorClass="bg-emerald-500" />
-                      <ScoreCard label="Problem" score={selectedIdea.score.profit || 8} subLabel="High Value" colorClass="bg-red-500" />
-                      <ScoreCard label="Feasibility" score={selectedIdea.score.talent || 7} subLabel="Your Skills" colorClass="bg-blue-500" />
-                      <ScoreCard label="Why Now" score={selectedIdea.score.demand || 9} subLabel="Market Timing" colorClass="bg-orange-500" />
-                    </div>
-
-                    {/* Business Fit Card */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                      <h4 className="font-bold text-slate-900 mb-6 border-b border-slate-100 pb-2">Business Fit</h4>
-
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center group cursor-pointer">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><DollarSign size={18} /></div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-400 uppercase">Revenue Potential</div>
-                              <div className="text-sm font-bold text-slate-800">High ($10k+/mo)</div>
-                            </div>
-                          </div>
-                          <span className="text-emerald-600 font-bold text-sm">$$$</span>
-                        </div>
-
-                        <div className="flex justify-between items-center group cursor-pointer">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Activity size={18} /></div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-400 uppercase">Execution Difficulty</div>
-                              <div className="text-sm font-bold text-slate-800">Moderate</div>
-                            </div>
-                          </div>
-                          <span className="text-blue-600 font-bold text-sm">5/10</span>
-                        </div>
-
-                        <div className="flex justify-between items-center group cursor-pointer">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-pink-50 text-pink-600 rounded-lg"><Target size={18} /></div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-400 uppercase">Go-To-Market</div>
-                              <div className="text-sm font-bold text-slate-800">Social Driven</div>
-                            </div>
-                          </div>
-                          <span className="text-pink-600 font-bold text-sm">8/10</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-4 border-t border-slate-100">
-                        <button className="w-full py-2 flex items-center justify-center gap-2 text-indigo-600 font-bold text-sm hover:bg-slate-50 rounded-lg transition-colors">
-                          View Validated Signals <ChevronRight size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Value Ladder (Bottom Full Width) */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-                  <h3 className="font-serif font-bold text-xl text-slate-900 mb-6">Strategic Value Ladder</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Step 1 */}
-                    <div className="relative pl-8 border-l-2 border-slate-100">
-                      <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lead Magnet</h5>
-                      <h4 className="font-bold text-slate-900 mb-2">Free Tool / Guide</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.leadMagnet || selectedIdea.blueprint.theWedge}</p>
-                    </div>
-                    {/* Step 2 */}
-                    <div className="relative pl-8 border-l-2 border-slate-100">
-                      <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Frontend Offer</h5>
-                      <h4 className="font-bold text-slate-900 mb-2">Workshop / Course</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.frontendOffer || "Low ticket ($49-$99) product to solve the immediate pain point."}</p>
-                    </div>
-                    {/* Step 3 */}
-                    <div className="relative pl-8 border-l-2 border-slate-100">
-                      <span className="absolute -left-[11px] top-0 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Core Offer</h5>
-                      <h4 className="font-bold text-slate-900 mb-2">Recurring Service</h4>
-                      <p className="text-sm text-slate-600">{selectedIdea.blueprint.valueLadder?.coreOffer || `${selectedIdea.title} Subscription ($29/mo) or High Ticket Consulting.`}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Execution Plan Widget */}
-                <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-32 bg-indigo-600 blur-[100px] opacity-20 rounded-full"></div>
-                  <h4 className="font-bold text-xl mb-6 relative z-10 flex items-center gap-2"><Crown size={20} className="text-yellow-400" /> CEO Execution Plan</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                    {selectedIdea.blueprint.executionPlan.map((step, i) => (
-                      <div key={i} className="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 backdrop-blur-sm">
-                        <div className="text-indigo-400 font-bold text-xs uppercase mb-2">Phase {i + 1}</div>
-                        <p className="text-sm leading-relaxed">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+            {/* The Wedge (Actionable) */}
+            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl">
+              <div className="flex items-center gap-2 mb-2 text-indigo-700 font-bold text-xs uppercase tracking-widest">
+                <Zap size={14} /> The Wedge (Entry Point)
               </div>
+              <p className="text-indigo-900 italic font-medium">
+                "{selectedIdea.blueprint.theWedge}"
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT: Scorecards & Plan (5 cols) */}
+          <div className="xl:col-span-5 space-y-6">
+
+            {/* Score Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" />
+              <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" />
+              <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" />
+              <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" />
+            </div>
+
+            {/* Execution Plan (Condensed) */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
+              <h4 className="font-bold flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
+                <Crown size={18} className="text-yellow-400" /> Execution Roadmap
+              </h4>
+              <div className="space-y-4">
+                {selectedIdea.blueprint.executionPlan.slice(0, 3).map((step, i) => (
+                  <div key={i} className="flex gap-3 items-start text-sm">
+                    <span className="text-slate-500 font-mono">0{i + 1}</span>
+                    <p className="text-slate-300">{step}</p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
+                className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <Bot size={16} /> Initialize Launchpad
+              </button>
             </div>
 
           </div>
         </div>
-      )}
+
+      </div>
+
     </div>
   );
 };
