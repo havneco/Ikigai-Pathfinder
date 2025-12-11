@@ -191,8 +191,8 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
               key={idx}
               onClick={() => setActiveTab(idx)}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === idx
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               Option {idx + 1}
@@ -208,10 +208,14 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded">
-              Score: {selectedIdea.score.total}/100
+              Score: {selectedIdea.score?.total || 0}/100
             </span>
             <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded">
-              {selectedIdea.validation.revenuePotential || "High Revenue"}
+              {selectedIdea.analysisStatus ? (
+                <span className="flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> {selectedIdea.analysisStatus}</span>
+              ) : (
+                selectedIdea.validation?.revenuePotential || "High Revenue"
+              )}
             </span>
           </div>
           <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2">
@@ -228,7 +232,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
           {/* LEFT: Charts & Analysis (7 cols) */}
           <div className="xl:col-span-7 space-y-8">
             {/* Trend Chart */}
-            <TrendChart signals={selectedIdea.validation.signals} />
+            <TrendChart signals={selectedIdea.validation?.signals || []} />
 
             {/* Deep Dive Text */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200">
@@ -238,14 +242,14 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                   <div className="min-w-[4px] bg-orange-400 rounded-full"></div>
                   <div>
                     <strong className="block text-slate-900 mb-1">Why Now?</strong>
-                    {selectedIdea.validation.whyNow}
+                    {selectedIdea.validation?.whyNow || "Analyzing market timing..."}
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="min-w-[4px] bg-blue-400 rounded-full"></div>
                   <div>
                     <strong className="block text-slate-900 mb-1">Market Gap</strong>
-                    {selectedIdea.validation.marketGap}
+                    {selectedIdea.validation?.marketGap || "Searching for blue ocean..."}
                   </div>
                 </div>
               </div>
@@ -257,7 +261,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                 <Zap size={14} /> The Wedge (Entry Point)
               </div>
               <p className="text-indigo-900 italic font-medium">
-                "{selectedIdea.blueprint.theWedge}"
+                "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
               </p>
             </div>
           </div>

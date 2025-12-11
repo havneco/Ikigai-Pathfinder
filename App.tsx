@@ -277,7 +277,14 @@ const App = () => {
 
       // 4. Stream Phase C: Deep Enrichment (The Spiral)
 
-      const enrichedIdeas = initialIdeas.map(idea => ({ ...idea, analysisStatus: "Waiting in queue..." }));
+      const enrichedIdeas = initialIdeas.map(idea => ({
+        ...idea,
+        analysisStatus: "Waiting in queue...",
+        score: { total: 0, demand: 0, profit: 0, talent: 0, complexity: 0, passion: 0 },
+        validation: { whyNow: "Analyzing...", marketGap: "Analyzing...", revenuePotential: "Estimating...", signals: [], community: [] },
+        blueprint: { role: "Founder", whyYou: "Matching...", dayInLife: "Thinking...", theWedge: "Calculating...", executionPlan: [], valueLadder: { leadMagnet: "", frontendOffer: "", coreOffer: "" } },
+        launchpad: []
+      }));
       // Initial render with "Waiting" status
       setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
 
