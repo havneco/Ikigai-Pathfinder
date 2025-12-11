@@ -191,7 +191,7 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
 
   // --- HELPER: Score Card ---
   const ScoreCard = ({ label, score, colorClass, subLabel, explanation }: any) => (
-    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group hover:shadow-md transition-all">
+    <div className="glass-card p-4 rounded-xl flex flex-col justify-between h-28 group">
       <div className={`absolute top-0 left-0 w-1 h-full ${colorClass}`}></div>
       <div className="flex justify-between items-start">
         <h5 className="text-sm font-bold text-slate-700">{label}</h5>
@@ -224,7 +224,7 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
     const selectedIdea = result.marketIdeas[activeTab];
 
     return (
-      <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col min-h-[600px]">
+      <div className="w-full glass-card rounded-3xl overflow-hidden flex flex-col min-h-[600px] shadow-xl isolate">
 
         {/* TABS HEADER */}
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
