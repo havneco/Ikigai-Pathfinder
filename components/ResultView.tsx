@@ -147,6 +147,11 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
               <div className="flex items-center gap-2">
                 <span className="text-lg font-black text-slate-800">{sig.value}</span>
                 <span className="text-slate-300 cursor-help text-xs" title={sig.description}>ⓘ</span>
+                {(sig as any).source && (
+                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-600 ml-0.5 transition-colors" title="View Source">
+                    <ExternalLink size={12} />
+                  </a>
+                )}
               </div>
             </div>
           ))}
