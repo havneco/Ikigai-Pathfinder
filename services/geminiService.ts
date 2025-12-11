@@ -68,7 +68,23 @@ export const enrichIdea = async (idea: any, ikigaiData: IkigaiState): Promise<an
     });
 
     if (!response.ok) throw new Error("Failed to enrich idea");
-    return await response.json();
+
+    // SAFE PARSING: Handle potential markdown/garbage from server
+    const rawText = await response.text();
+    try {
+      // 1. Try normal parse
+      return JSON.parse(rawText);
+    } catch (e) {
+      // 2. Fallback: Manually extract JSON object
+      console.warn("Standard JSON parse failed, attempting extraction:", e);
+      const start = rawText.indexOf('{');
+      const end = rawText.lastIndexOf('}');
+      if (start !== -1 && end !== -1) {
+        const cleanText = rawText.substring(start, end + 1);
+        return JSON.parse(cleanText);
+      }
+      throw new Error("Could not extract valid JSON");
+    }
   } catch (error) {
     console.error("Error enriching idea", error);
     return null; // Return null on failure so UI can handle it gracefully
