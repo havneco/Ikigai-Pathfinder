@@ -397,21 +397,20 @@ const App = () => {
         setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
       }
 
-      // 5. Final Save
+      // 5. Final Save (Auto-Save to Dashboard)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         const finalResult = { ...structure, marketIdeas: enrichedIdeas } as IkigaiResult;
-        localStorage.setItem('ikigaiResult', JSON.stringify(finalResult));
 
-        supabase.from('ikigai_results').insert({
+        console.log("Saving Analysis to DB...", finalResult);
+        const { error } = await supabase.from('analyses').upsert({
           user_id: currentUser.id,
-          statement: finalResult.statement,
-          description: finalResult.description,
-          intersection_points: finalResult.intersectionPoints,
-          roadmap: finalResult.roadmap,
-          market_ideas: finalResult.marketIdeas,
-          sources: finalResult.sources
+          ikigai_data: ikigaiData,
+          result_data: finalResult,
+          last_updated: new Date().toISOString()
         });
+
+        if (error) console.error("Auto-save failed:", error);
       }
 
     } catch (e) {
