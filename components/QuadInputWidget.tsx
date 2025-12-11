@@ -110,6 +110,7 @@ const QuadInputWidget: React.FC<QuadInputWidgetProps> = ({ data, onUpdate, onReg
             )}
           </div>
         </div>
+      )}
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-slate-100 bg-white flex justify-between items-center z-10">
