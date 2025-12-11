@@ -59,19 +59,15 @@ const App = () => {
   }, [ikigaiData]);
 
   // --- SAFETY TIMEOUT (GLOBAL LOADING) ---
-  // REMOVED: This timeout was causing premature session cancellation.
-  // We rely on supabase.auth.getSession() triggering properly.
-  /*
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isSessionLoading) {
         console.warn("Session loading timed out. Forcing render.");
         setIsSessionLoading(false);
       }
-    }, 6000);
+    }, 4000); // 4 seconds max wait
     return () => clearTimeout(timer);
   }, [isSessionLoading]);
-  */
 
   // --- SAFETY TIMEOUT (ANALYSIS) ---
   useEffect(() => {
@@ -188,25 +184,26 @@ const App = () => {
         return;
       }
 
-      // 2. Load User Data (Always refresh on session init to be safe)
+      // 2. Load User Data (Optimize: Unblock UI immediately)
       userRef.current = session.user.id;
-      // Only show loading if we are actually switching users or starting up
-      // setIsSessionLoading(true); // removed to prevent flicker loop
+
+      setUser({
+        name: session.user.user_metadata.full_name || 'User',
+        email: session.user.email || '',
+        photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`
+      });
+
+      // RESTORE INPUTS
+      const savedState = session.user.user_metadata?.saved_state;
+      if (savedState && ikigaiData.love.length === 0) {
+        setIkigaiData(savedState);
+      }
+
+      // CRITICAL FIX: Unlock Global Loading NOW so user sees dashboard instantly
+      if (mounted) setIsSessionLoading(false);
 
       try {
-        setUser({
-          name: session.user.user_metadata.full_name || 'User',
-          email: session.user.email || '',
-          photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`
-        });
-
-        // Restore saved inputs from metadata if local is empty
-        const savedState = session.user.user_metadata?.saved_state;
-        if (savedState && ikigaiData.love.length === 0) {
-          setIkigaiData(savedState);
-        }
-
-        // Parallel Fetch
+        // Parallel Fetch (Background Sync)
         await Promise.all([
           fetchUserProfile(session.user.id),
           fetchLatestResult(session.user.id)
@@ -215,8 +212,6 @@ const App = () => {
         checkForPaymentSuccess(session.user.id);
       } catch (err) {
         console.error("Error loading session data", err);
-      } finally {
-        if (mounted) setIsSessionLoading(false);
       }
     };
 
