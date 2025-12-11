@@ -116,17 +116,17 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             {/* ROW 1 */}
 
             {/* Statement: Top Left (3 cols) */}
-            <div className="md:col-span-3 min-h-[450px] flex flex-col">
+            <div className="md:col-span-3 min-h-[300px] flex flex-col">
               <StatementWidget result={result} />
             </div>
 
             {/* Venn: Top Center (4 cols) */}
-            <div className="md:col-span-4 min-h-[450px] flex flex-col">
+            <div className="md:col-span-4 min-h-[300px] flex flex-col">
               <VennWidget result={result} />
             </div>
 
             {/* Chat: Top Right (5 cols) */}
-            <div className="md:col-span-5 min-h-[450px] flex flex-col">
+            <div className="md:col-span-5 min-h-[300px] flex flex-col">
               <ChatWidget
                 result={result}
                 isPro={isPro}
@@ -141,7 +141,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             {/* ROW 2 */}
 
             {/* Market Ideas: Full Width (12 cols) for better readability */}
-            <div className="md:col-span-12 min-h-[500px] flex flex-col">
+            <div className="md:col-span-12 flex flex-col h-auto min-h-[400px]">
               <MarketWidget result={result} isPro={isPro} onUpgrade={onUpgrade} onOpenCopilot={setLaunchpadContext} />
             </div>
 

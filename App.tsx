@@ -59,6 +59,9 @@ const App = () => {
   }, [ikigaiData]);
 
   // --- SAFETY TIMEOUT (GLOBAL LOADING) ---
+  // REMOVED: This timeout was causing premature session cancellation.
+  // We rely on supabase.auth.getSession() triggering properly.
+  /*
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isSessionLoading) {
@@ -68,6 +71,7 @@ const App = () => {
     }, 6000);
     return () => clearTimeout(timer);
   }, [isSessionLoading]);
+  */
 
   // --- SAFETY TIMEOUT (ANALYSIS) ---
   useEffect(() => {
