@@ -255,15 +255,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
               </div>
             </div>
 
-            {/* The Wedge (Actionable) */}
-            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl">
-              <div className="flex items-center gap-2 mb-2 text-indigo-700 font-bold text-xs uppercase tracking-widest">
-                <Zap size={14} /> The Wedge (Entry Point)
-              </div>
-              <p className="text-indigo-900 italic font-medium">
-                "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
-              </p>
-            </div>
+            {/* The Wedge (Moved to Bottom) */}
           </div>
 
           {/* RIGHT: Scorecards & Plan (5 cols) */}
