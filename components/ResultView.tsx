@@ -288,116 +288,84 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
 
           {/* LEFT: Charts & Analysis (7 cols) */}
-          <div className="xl:col-span-7 space-y-8">
-            {/* Trend Chart */}
-            <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
+          {/* Trend Chart */}
+          <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
 
-            {/* Competitors (The Fight) */}
-            <CompetitorWidget competitors={selectedIdea.validation?.competitors} />
+          {/* The Wedge (Moved to Bottom) */}
+        </div>
 
-            {/* Deep Dive Text */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200">
-              <h3 className="font-bold text-slate-900 mb-4">Strategic Validation</h3>
-              <div className="space-y-4 text-sm text-slate-600">
-                <div className="flex gap-4">
-                  <div className="min-w-[4px] bg-orange-400 rounded-full"></div>
-                  <div>
-                    <strong className="block text-slate-900 mb-1">Why Now?</strong>
-                    {selectedIdea.validation?.whyNow || "Analyzing market timing..."}
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="min-w-[4px] bg-blue-400 rounded-full"></div>
-                  <div>
-                    <strong className="block text-slate-900 mb-1">Market Gap</strong>
-                    {selectedIdea.validation?.marketGap || "Searching for blue ocean..."}
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* RIGHT: Scorecards & Plan (5 cols) */}
+        <div className="xl:col-span-5 space-y-6">
 
-            {/* FINANCIAL SIMULATOR (Plan) */}
-            <FinancialSimulator
-              initialPrice={selectedIdea.blueprint?.pricing?.minPrice || 50}
-              initialConversion={selectedIdea.blueprint?.pricing?.estimatedConversion || 0.02}
-              model={selectedIdea.blueprint?.pricing?.model || "Subscription"}
-            />
-
-            {/* The Wedge (Moved to Bottom) */}
+          {/* Score Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" explanation={selectedIdea.score.explanations?.demand} />
+            <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" explanation={selectedIdea.score.explanations?.profit} />
+            <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" explanation={selectedIdea.score.explanations?.talent} />
+            <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" explanation={selectedIdea.score.explanations?.complexity} />
           </div>
 
-          {/* RIGHT: Scorecards & Plan (5 cols) */}
-          <div className="xl:col-span-5 space-y-6">
-
-            {/* Score Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" explanation={selectedIdea.score.explanations?.demand} />
-              <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" explanation={selectedIdea.score.explanations?.profit} />
-              <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" explanation={selectedIdea.score.explanations?.talent} />
-              <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" explanation={selectedIdea.score.explanations?.complexity} />
+          {/* Execution Plan (Condensed) */}
+          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
+            <h4 className="font-bold flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
+              <Crown size={18} className="text-yellow-400" /> Execution Roadmap
+            </h4>
+            <div className="space-y-4">
+              {selectedIdea.blueprint.executionPlan.slice(0, 3).map((step, i) => (
+                <div key={i} className="flex gap-3 items-start text-sm">
+                  <span className="text-slate-500 font-mono">0{i + 1}</span>
+                  <p className="text-slate-300">{step}</p>
+                </div>
+              ))}
             </div>
+            <button
+              onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
+              className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <Bot size={16} /> Initialize Launchpad
+            </button>
+          </div>
 
-            {/* Execution Plan (Condensed) */}
-            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
-              <h4 className="font-bold flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
-                <Crown size={18} className="text-yellow-400" /> Execution Roadmap
-              </h4>
-              <div className="space-y-4">
-                {selectedIdea.blueprint.executionPlan.slice(0, 3).map((step, i) => (
-                  <div key={i} className="flex gap-3 items-start text-sm">
-                    <span className="text-slate-500 font-mono">0{i + 1}</span>
-                    <p className="text-slate-300">{step}</p>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
-                className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                <Bot size={16} /> Initialize Launchpad
-              </button>
-            </div>
+        </div>
+      </div>
 
+      {/* THE WEDGE (Bottom Full Width) */}
+      <div className="mt-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        {/* Decorative Background */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+
+        {/* Cute Pie Visual (Left) */}
+        <div className="w-32 h-32 shrink-0 relative animate-in zoom-in duration-700">
+          {/* SVG Pie Chart */}
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
+            <circle cx="50" cy="50" r="45" fill="#fff" stroke="#e2e8f0" strokeWidth="2" />
+            {/* The Slice (20% wedge) */}
+            <path d="M50,50 L50,5 A45,45 0 0,1 93,20 z" fill="#4f46e5" stroke="white" strokeWidth="2" />
+            {/* Center Dot */}
+            <circle cx="50" cy="50" r="6" fill="#312e81" />
+          </svg>
+          <div className="absolute top-0 right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
+            START HERE
           </div>
         </div>
 
-        {/* THE WEDGE (Bottom Full Width) */}
-        <div className="mt-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          {/* Decorative Background */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-
-          {/* Cute Pie Visual (Left) */}
-          <div className="w-32 h-32 shrink-0 relative animate-in zoom-in duration-700">
-            {/* SVG Pie Chart */}
-            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
-              <circle cx="50" cy="50" r="45" fill="#fff" stroke="#e2e8f0" strokeWidth="2" />
-              {/* The Slice (20% wedge) */}
-              <path d="M50,50 L50,5 A45,45 0 0,1 93,20 z" fill="#4f46e5" stroke="white" strokeWidth="2" />
-              {/* Center Dot */}
-              <circle cx="50" cy="50" r="6" fill="#312e81" />
-            </svg>
-            <div className="absolute top-0 right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
-              START HERE
-            </div>
+        {/* Content */}
+        <div className="flex-1 relative z-10 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
+            <Zap size={14} /> The Wedge Strategy
           </div>
-
-          {/* Content */}
-          <div className="flex-1 relative z-10 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
-              <Zap size={14} /> The Wedge Strategy
-            </div>
-            <h3 className="text-2xl font-serif font-bold text-indigo-900 mb-3">
-              Your "Trojan Horse" into the Market
-            </h3>
-            <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
-              "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
-            </p>
-          </div>
+          <h3 className="text-2xl font-serif font-bold text-indigo-900 mb-3">
+            Your "Trojan Horse" into the Market
+          </h3>
+          <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
+            "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
+          </p>
         </div>
-
       </div>
 
     </div>
+
+    </div >
   );
 };
 
