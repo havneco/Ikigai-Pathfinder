@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IkigaiResult, User, MarketOpportunity, IkigaiState } from '../types';
 import VennDiagram from './VennDiagram';
-import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown } from 'lucide-react';
+import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown, Loader2 } from 'lucide-react';
 import { chatWithCopilot } from '../services/geminiService';
 import MarketCard from './MarketCard';
 import ReactMarkdown from 'react-markdown';
