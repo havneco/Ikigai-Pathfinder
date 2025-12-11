@@ -144,7 +144,7 @@ export default async function handler(req: any, res: any) {
 
       Generate the DEEP DATA (Validation, Blueprint, Launchpad).
       Use Google Search if needed to find REAL signals.
-      Ensure `trendCurve` contains 12 integers (0-100) representing the last year's trend.
+      Ensure 'trendCurve' contains 12 integers (0-100) representing the last year's trend.
 
       OUTPUT FORMAT (JSON ONLY):
       {
