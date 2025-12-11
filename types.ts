@@ -77,21 +77,21 @@ export interface MarketOpportunity {
   title: string;
   description: string;
   score: Score;
-};
-blueprint ?: {
-  role: string;
-  whyYou: string;
-  dayInLife: string;
-  theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
-  valueLadder: {
-    leadMagnet: string;
-    frontendOffer: string;
-    coreOffer: string;
+  validation?: ValidationData;
+  blueprint?: {
+    role: string;
+    whyYou: string;
+    dayInLife: string;
+    theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
+    valueLadder: {
+      leadMagnet: string;
+      frontendOffer: string;
+      coreOffer: string;
+    };
+    executionPlan: string[]; // List of specific steps
   };
-  executionPlan: string[]; // List of specific steps
-};
-launchpad ?: LaunchpadAction[];
-analysisStatus ?: string; // e.g. "Waiting...", "Analyzing...", "Deep Scan Complete"
+  launchpad?: LaunchpadAction[];
+  analysisStatus?: string; // e.g. "Waiting...", "Analyzing...", "Deep Scan Complete"
 }
 
 export interface IkigaiResult {
