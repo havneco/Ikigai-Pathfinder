@@ -75,26 +75,67 @@ export const enrichIdea = async (idea: any, ikigaiData: IkigaiState): Promise<an
       // 1. Try normal parse
       return JSON.parse(rawText);
     } catch (e) {
-      // 2. Fallback: Manually extract JSON object
-      console.warn("Standard JSON parse failed, attempting extraction:", e);
+      // 2. Fallback: Surgical Extraction
+      console.warn("Standard JSON parse failed, attempting surgical extraction:", e);
+
+      // Find the absolute first '{'
       const start = rawText.indexOf('{');
-      const end = rawText.lastIndexOf('}');
-      if (start !== -1 && end !== -1) {
-        let cleanText = rawText.substring(start, end + 1);
-        try {
-          return JSON.parse(cleanText);
-        } catch (e2) {
-          console.warn("Bounds extraction failed, attempting Brute Force Rewind...");
-          // Strategy B: Brute Force Rewind
-          // Try removing chars from the end one by one (up to 500 chars)
-          for (let i = 0; i < 500; i++) {
-            try {
-              const sub = cleanText.substring(0, cleanText.length - i);
-              return JSON.parse(sub);
-            } catch (ignore) { }
+      if (start === -1) throw new Error("No JSON object found in response");
+
+      // Iterate forward to find the matching '}'
+      let openBraces = 0;
+      let inString = false;
+      let escaped = false;
+
+      for (let i = start; i < rawText.length; i++) {
+        const char = rawText[i];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        if (char === '\\') {
+          escaped = true;
+          continue;
+        }
+
+        if (char === '"' && !escaped) {
+          inString = !inString;
+          continue;
+        }
+
+        if (!inString) {
+          if (char === '{') {
+            openBraces++;
+          } else if (char === '}') {
+            openBraces--;
+            if (openBraces === 0) {
+              // Found the end of the first object
+              const potentialJson = rawText.substring(start, i + 1);
+              try {
+                return JSON.parse(potentialJson);
+              } catch (parseError) {
+                console.error("Surgical extraction found candidate but failed parse:", parseError);
+                // If this specific surgical extraction failed, we might have bad characters *inside*
+                // But we won't give up? No, usually this means the JSON is internally broken.
+                // We can try to continue searching? Likely futile if the first object is broken.
+                break;
+              }
+            }
           }
         }
       }
+
+      // If surgical failed, try the brute-force rewind as a last resort on the whole string
+      console.warn("Surgical extraction failed, attempting Brute Force Rewind as Hail Mary...");
+      for (let i = 0; i < 500; i++) {
+        try {
+          const sub = rawText.substring(start, rawText.length - i);
+          return JSON.parse(sub);
+        } catch (ignore) { }
+      }
+
       throw new Error("Could not extract valid JSON");
     }
   } catch (error) {
