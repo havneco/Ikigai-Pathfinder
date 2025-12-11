@@ -311,6 +311,13 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
               </div>
             </div>
 
+            {/* FINANCIAL SIMULATOR (Plan) */}
+            <FinancialSimulator
+              initialPrice={selectedIdea.blueprint?.pricing?.minPrice || 50}
+              initialConversion={selectedIdea.blueprint?.pricing?.estimatedConversion || 0.02}
+              model={selectedIdea.blueprint?.pricing?.model || "Subscription"}
+            />
+
             {/* The Wedge (Moved to Bottom) */}
           </div>
 
