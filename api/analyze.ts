@@ -12,7 +12,7 @@ const getAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export default async function handler(req: Request) {
+export default async function handler(req: any, res: any) {
   // Helper to clean JSON string
   const cleanJsonString = (str: string) => {
     if (!str) return "{}";
@@ -38,17 +38,16 @@ export default async function handler(req: Request) {
   };
 
   if (req.method !== 'POST') {
-    return new Response("Method Not Allowed", { status: 405 });
+    return res.status(405).send("Method Not Allowed");
   }
 
   try {
-    const { ikigaiData, type } = await req.json();
+    const { ikigaiData, type } = req.body;
     const ai = getAI();
 
     // 1. SUGGESTIONS MODE
     if (type === 'suggestions') {
       const { category, currentItems, context } = ikigaiData;
-      // Reusing prompt logic from service
       const model = "gemini-2.0-flash-exp";
       let prompt = "";
       if (category === "love") {
@@ -65,7 +64,8 @@ export default async function handler(req: Request) {
         model, contents: prompt,
         config: { responseMimeType: "application/json", responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } } }
       });
-      return new Response(JSON.stringify(JSON.parse(response.text || "[]")), { headers: { 'Content-Type': 'application/json' } });
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(JSON.stringify(JSON.parse(response.text || "[]")));
     }
 
     // 2a. STRUCTURE MODE (Instant, Header Data)
@@ -96,7 +96,8 @@ export default async function handler(req: Request) {
         config: { responseMimeType: "application/json" }
       });
       const cleanedText = cleanJsonString(response.text || "{}");
-      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(cleanedText);
     }
 
     // 2b. IDEAS MODE (Core Titles)
@@ -134,7 +135,8 @@ export default async function handler(req: Request) {
         config: { responseMimeType: "application/json" }
       });
       const cleanedText = cleanJsonString(response.text || "{}");
-      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(cleanedText);
     }
 
     // 3. ENRICH MODE (Deep, Per Idea)
@@ -184,19 +186,18 @@ export default async function handler(req: Request) {
       });
 
       const cleanedText = cleanJsonString(response.text || "{}");
-      return new Response(cleanedText, { headers: { 'Content-Type': 'application/json' } });
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(cleanedText);
     }
 
-    // The original parsing logic for 'analysis' is now removed
-    // and cleanJsonString is hoisted.
-
-    return new Response("Unknown Type", { status: 400 });
+    return res.status(400).send("Unknown Type");
 
   } catch (error: any) {
-    return new Response(JSON.stringify({
+    console.error("API Error:", error);
+    return res.status(500).json({
       error: error.message,
-      _version: "2.6-revert-2.0",
-      tip: "Reverted to 2.0-flash-exp per user request. If timeout, plan upgrade needed."
-    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      _version: "2.6-node-runtime",
+      tip: "Check server logs."
+    });
   }
 }

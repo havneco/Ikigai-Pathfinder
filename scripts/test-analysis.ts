@@ -19,6 +19,33 @@ class MockRequest {
     }
 }
 
+class MockResponse {
+    statusCode: number = 200;
+    headers: Record<string, string> = {};
+    body: string = "";
+
+    status(code: number) {
+        this.statusCode = code;
+        return this;
+    }
+
+    setHeader(key: string, value: string) {
+        this.headers[key] = value;
+    }
+
+    send(data: any) {
+        this.body = typeof data === 'string' ? data : JSON.stringify(data);
+        return this;
+    }
+
+    json(data: any) {
+        return this.send(data);
+    }
+
+    // For test verification
+    text() { return Promise.resolve(this.body); }
+}
+
 async function runTest() {
     console.log("--- TESTING STREAMING API ---");
 
@@ -32,11 +59,11 @@ async function runTest() {
     // 1. Test Structure
     console.log("\n1. Testing 'analysis_structure'...");
     const reqStructure = new MockRequest('POST', { type: 'analysis_structure', ikigaiData: dummyData });
+    const resStructure = new MockResponse();
     try {
-        const res = await handler(reqStructure as any);
-        const text = await res.text(); // Response might be a standard Response object
-        console.log("STATUS:", res.status);
-        console.log("PAYLOAD:", text.substring(0, 500) + "...");
+        await handler(reqStructure as any, resStructure as any);
+        console.log("STATUS:", resStructure.statusCode);
+        console.log("PAYLOAD:", resStructure.body.substring(0, 500) + "...");
     } catch (e) {
         console.error("FAIL:", e);
     }
@@ -44,11 +71,11 @@ async function runTest() {
     // 2. Test Ideas
     console.log("\n2. Testing 'analysis_ideas_core'...");
     const reqIdeas = new MockRequest('POST', { type: 'analysis_ideas_core', ikigaiData: dummyData });
+    const resIdeas = new MockResponse();
     try {
-        const res = await handler(reqIdeas as any);
-        const text = await res.text();
-        console.log("STATUS:", res.status);
-        console.log("PAYLOAD:", text.substring(0, 500) + "...");
+        await handler(reqIdeas as any, resIdeas as any);
+        console.log("STATUS:", resIdeas.statusCode);
+        console.log("PAYLOAD:", resIdeas.body.substring(0, 500) + "...");
     } catch (e) {
         console.error("FAIL:", e);
     }

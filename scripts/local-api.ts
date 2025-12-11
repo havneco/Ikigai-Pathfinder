@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 // @ts-ignore
 import handler from '../api/analyze.ts';
 
-const PORT = 3003;
+const PORT = 3005;
 
 const server = createServer(async (req, res) => {
     // CORS Support
@@ -28,25 +28,30 @@ const server = createServer(async (req, res) => {
             }
             const body = Buffer.concat(buffers).toString();
 
-            const webReq = new Request(`http://localhost:${PORT}${req.url}`, {
-                method: 'POST',
-                headers: req.headers as HeadersInit,
-                body: body || '{}',
-                // @ts-ignore
-                duplex: 'half'
-            });
+            // Start building the mock response object (that acts like VercelResponse)
+            const mockRes = {
+                statusCode: 200,
+                headers: {} as Record<string, string | string[]>,
+                setHeader(k: string, v: string) { this.headers[k] = v; },
+                status(code: number) { this.statusCode = code; return this; },
+                send(body: any) {
+                    res.statusCode = this.statusCode;
+                    Object.entries(this.headers).forEach(([k, v]) => res.setHeader(k, v));
+                    res.end(typeof body === 'object' ? JSON.stringify(body) : body);
+                },
+                json(body: any) { this.send(body); }
+            };
 
-            const webRes = await handler(webReq);
+            // Enhance req with .body (which we parsed)
+            // @ts-ignore
+            req.body = JSON.parse(body || '{}');
 
-            res.statusCode = webRes.status;
-            webRes.headers.forEach((v, k) => res.setHeader(k, v));
-            const text = await webRes.text();
-            res.end(text);
+            // Call handler directly with (req, res)
+            await handler(req, mockRes);
 
         } catch (e: any) {
             console.error("[LocalAPI] Error:", e);
-            res.statusCode = 500;
-            res.end(JSON.stringify({ error: e.message }));
+            try { res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); } catch (err) { }
         }
         return;
     }
