@@ -150,10 +150,12 @@ export default async function handler(req: any, res: any) {
 
       Generate the DEEP DATA (Validation, Blueprint, Launchpad).
       Use Google Search if needed to find REAL signals.
+      Refine the 'score' based on the search findings (adjusting for reality vs initial hypothesis).
       Ensure 'trendCurve' contains 12 integers (0-100) representing the last year's trend.
 
       OUTPUT FORMAT (JSON ONLY):
       {
+        "score": { "total": 85, "passion": 8, "talent": 9, "demand": 9, "profit": 9, "complexity": 3 },
         "validation": {
           "whyNow": "Detailed timing analysis.",
           "marketGap": "The missing piece.",
