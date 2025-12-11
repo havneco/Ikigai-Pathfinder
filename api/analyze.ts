@@ -144,18 +144,20 @@ export default async function handler(req: any, res: any) {
 
       Generate the DEEP DATA (Validation, Blueprint, Launchpad).
       Use Google Search if needed to find REAL signals.
+      Ensure `trendCurve` contains 12 integers (0-100) representing the last year's trend.
 
       OUTPUT FORMAT (JSON ONLY):
       {
         "validation": {
           "whyNow": "Detailed timing analysis.",
           "marketGap": "The missing piece.",
+          "revenuePotential": "Detailed calculation ($X/mo)",
           "signals": [
-            { "source": "Reddit", "context": "r/saas", "signal": "Specific complaint", "sentiment": "Negative" },
-            { "source": "Google Trends", "context": "Keyword", "signal": "Rising trend", "sentiment": "Positive" }
+            { "type": "Reddit", "value": "High Activity", "description": "Frequent complaints about X in r/saas" },
+            { "type": "Market", "value": "+120% Growth", "description": "Rising demand for Y solutions" }
           ],
-          "community": [ { "platform": "Reddit", "count": "10k", "description": "r/niche", "score": 9 } ],
-          "revenuePotential": "Detailed calculation"
+          "community": [ { "name": "r/target_audience", "url": "reddit.com/r/...", "size": "50k Members" } ],
+          "trendCurve": [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100]
         },
         "blueprint": {
           "role": "Founder Role",

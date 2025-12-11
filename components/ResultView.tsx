@@ -89,9 +89,50 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
 );
 
 // --- HELPER: Trend Chart (Dynamic) ---
-const TrendChart = ({ signals }: { signals?: { type: string, value: string, description: string }[] }) => {
+const TrendChart = ({ signals, data }: { signals?: { type: string, value: string, description: string }[], data?: number[] }) => {
   // Default fallback if no signals
   const primarySignal = signals?.[0] || { value: "+122% Growth", description: "Search Interest" };
+
+  // Clean Data or Default Curve
+  const points = (data && data.length >= 2) ? data : [20, 25, 40, 35, 50, 45, 60, 55, 70, 80, 85, 95];
+
+  // Generate SVG Path
+  const generateSmoothPath = (points: number[]) => {
+    const max = Math.max(...points, 100);
+    // Normalize to 0-100 x, 0-40 y
+    const width = 100;
+    const height = 40;
+
+    // X spacing
+    const stepX = width / (points.length - 1);
+
+    // Map points to coordinates
+    const coords = points.map((p, i) => {
+      const x = i * stepX;
+      // Y is inverted (0 is top), so (1 - value/max) * height
+      // But we want 0 at bottom (40), 100 at top (0)
+      // Actually value is 0-100.
+      const normalizedY = (1 - (p / 100)) * (height - 5) + 2; // Keep some padding
+      return [x, normalizedY];
+    });
+
+    if (coords.length === 0) return "";
+
+    // Build Path String (Simple Line for now, could be bezier)
+    // L commands
+    let d = `M ${coords[0][0]},${coords[0][1]}`;
+    for (let i = 1; i < coords.length; i++) {
+      // Simple smoothing: Bezier would be better but L is fine for "Real" look sometimes
+      // Let's do simple quadratic bezier approximation?
+      // Or just straight lines? "Real" graphs are often straight lines.
+      // But user liked the curvy one.
+      // Let's stick to Catmull-Rom or just straight for reliability first.
+      d += ` L ${coords[i][0]},${coords[i][1]}`;
+    }
+    return d;
+  };
+
+  const pathData = generateSmoothPath(points);
 
   return (
     <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
@@ -112,7 +153,7 @@ const TrendChart = ({ signals }: { signals?: { type: string, value: string, desc
           <div className="border-t border-dashed border-slate-100 w-full h-0"></div>
         </div>
 
-        {/* The Line (Simulated Path) */}
+        {/* The Line (Dynamic) */}
         <svg viewBox="0 0 100 40" className="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none">
           <defs>
             <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
@@ -120,11 +161,11 @@ const TrendChart = ({ signals }: { signals?: { type: string, value: string, desc
               <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2"
+          <path d={pathData}
             fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
-          <path d="M0,35 Q10,35 15,25 T30,30 T45,15 T60,25 T75,10 T90,5 L100,2 V40 H0 Z"
+          <path d={`${pathData} V 40 H 0 Z`}
             fill="url(#gradient)" stroke="none"
           />
         </svg>
@@ -232,7 +273,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
           {/* LEFT: Charts & Analysis (7 cols) */}
           <div className="xl:col-span-7 space-y-8">
             {/* Trend Chart */}
-            <TrendChart signals={selectedIdea.validation?.signals || []} />
+            <TrendChart signals={selectedIdea.validation?.signals || []} data={selectedIdea.validation?.trendCurve} />
 
             {/* Deep Dive Text */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200">

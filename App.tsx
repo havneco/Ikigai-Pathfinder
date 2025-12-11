@@ -281,7 +281,7 @@ const App = () => {
         ...idea,
         analysisStatus: "Waiting in queue...",
         score: { total: 0, demand: 0, profit: 0, talent: 0, complexity: 0, passion: 0 },
-        validation: { whyNow: "Analyzing...", marketGap: "Analyzing...", revenuePotential: "Estimating...", signals: [], community: [] },
+        validation: { whyNow: "Analyzing...", marketGap: "Analyzing...", revenuePotential: "Estimating...", signals: [], community: [], trendCurve: [20, 25, 30, 40, 35, 45, 50, 60, 55, 70, 80, 90] },
         blueprint: { role: "Founder", whyYou: "Matching...", dayInLife: "Thinking...", theWedge: "Calculating...", executionPlan: [], valueLadder: { leadMagnet: "", frontendOffer: "", coreOffer: "" } },
         launchpad: []
       }));
