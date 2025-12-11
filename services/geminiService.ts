@@ -80,8 +80,20 @@ export const enrichIdea = async (idea: any, ikigaiData: IkigaiState): Promise<an
       const start = rawText.indexOf('{');
       const end = rawText.lastIndexOf('}');
       if (start !== -1 && end !== -1) {
-        const cleanText = rawText.substring(start, end + 1);
-        return JSON.parse(cleanText);
+        let cleanText = rawText.substring(start, end + 1);
+        try {
+          return JSON.parse(cleanText);
+        } catch (e2) {
+          console.warn("Bounds extraction failed, attempting Brute Force Rewind...");
+          // Strategy B: Brute Force Rewind
+          // Try removing chars from the end one by one (up to 500 chars)
+          for (let i = 0; i < 500; i++) {
+            try {
+              const sub = cleanText.substring(0, cleanText.length - i);
+              return JSON.parse(sub);
+            } catch (ignore) { }
+          }
+        }
       }
       throw new Error("Could not extract valid JSON");
     }
