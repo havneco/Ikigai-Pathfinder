@@ -143,37 +143,47 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
         <div className="flex justify-between items-start mb-8 relative z-10">
           <div className="flex gap-10">
             {displayedSignals.map((sig, i) => (
-            <div key={i}>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{sig.type || "Metric"}</div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-slate-800 tracking-tight">{sig.value}</span>
-                {(sig as any).source && (
-                  <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 p-1 rounded-full transition-colors" title="View Source">
-                    <ExternalLink size={10} />
-                  </a>
-                )}
+              <div key={i}>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{sig.type || "Metric"}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-slate-800 tracking-tight">{sig.value}</span>
+                  {(sig as any).source && (
+                    <a href={(sig as any).source} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 p-1 rounded-full transition-colors" title="View Source">
+                      <ExternalLink size={10} />
+                    </a>
+                  )}
+                </div>
+                <div className="text-xs text-slate-400 font-medium mt-0.5 truncate max-w-[120px]" title={sig.description}>{sig.description}</div>
               </div>
-            <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={pathData}
-            fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-          <path d={`${pathData} V 40 H 0 Z`}
-            fill="url(#gradient)" stroke="none"
-          />
-        </svg>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+            <TrendingUp size={14} /> 1 Year Trend
+          </div>
         </div>
 
-        {/* X-Axis */}
-        <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium">
-          <span>1y ago</span>
-          <span>6m ago</span>
-          <span>3m ago</span>
-          <span>Now</span>
+        {/* CHART SVG */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 w-full">
+          <svg viewBox="0 0 300 100" preserveAspectRatio="none" className="w-full h-full">
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Area Fill */}
+            <path d={fill} fill="url(#gradient)" />
+            {/* Line */}
+            <path d={line} fill="none" stroke="#6366f1" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+          </svg>
+
+          {/* X-Axis Labels */}
+          <div className="absolute bottom-2 inset-x-0 flex justify-between px-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span>12mo Ago</span>
+            <span>Now</span>
+          </div>
         </div>
       </div>
     );
