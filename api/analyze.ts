@@ -169,6 +169,12 @@ export default async function handler(req: any, res: any) {
            { "label": "Analyze Competitors", "tool": "Perplexity", "prompt": "..." }
         ]
       }
+
+      RULES:
+      1. RETURN ONLY VALID JSON. 
+      2. ESCAPE ALL DOUBLE QUOTES INSIDE STRINGS (e.g. \"text with \\\"quotes\\\"\"). 
+      3. NO MARKDOWN. NO COMMENTS.
+      4. DO NOT APPEND TEXT AFTER THE JSON.
       `;
 
 
