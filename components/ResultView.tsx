@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IkigaiResult, User, MarketOpportunity, IkigaiState } from '../types';
 import VennDiagram from './VennDiagram';
-import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown, Loader2 } from 'lucide-react';
+import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown, Loader2, Printer } from 'lucide-react';
 import { chatWithCopilot } from '../services/geminiService';
 import MarketCard from './MarketCard';
 import FinancialSimulator from './FinancialSimulator';
@@ -257,6 +257,13 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
             </button>
           ))}
         </div>
+
+        <button
+          onClick={() => window.print()}
+          className="ml-auto hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-400 hover:text-slate-900 transition-colors shadow-sm print:hidden"
+        >
+          <Printer size={14} /> Save Plan
+        </button>
       </div>
 
       {/* CONTENT AREA (IdeaBrowser Inline) */}

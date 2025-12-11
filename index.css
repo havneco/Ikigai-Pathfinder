@@ -3,6 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* PRINT STYLES */
+  @media print {
+    @page {
+      margin: 0.5cm;
+      size: auto;
+    }
+
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      background: white !important;
+    }
+
+    /* Hide UI Chrome */
+    nav,
+    header,
+    footer,
+    .chat-widget,
+    .print\:hidden {
+      display: none !important;
+    }
+
+    /* Layout Adjustments */
+    .h-screen {
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .overflow-hidden {
+      overflow: visible !important;
+    }
+
+    .fixed {
+      position: static !important;
+    }
+  }
+
   body {
     @apply bg-slate-50 text-slate-900;
   }
