@@ -111,22 +111,22 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
           </div>
         ) : (
           /* STATIC CSS GRID LAYOUT - ROBUST & CLEAN */
-          <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-min">
+          <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-fr">
 
             {/* ROW 1 */}
 
             {/* Statement: Top Left (3 cols) */}
-            <div className="md:col-span-3 h-[450px]">
+            <div className="md:col-span-3 min-h-[450px] flex flex-col">
               <StatementWidget result={result} />
             </div>
 
             {/* Venn: Top Center (4 cols) */}
-            <div className="md:col-span-4 h-[450px]">
+            <div className="md:col-span-4 min-h-[450px] flex flex-col">
               <VennWidget result={result} />
             </div>
 
             {/* Chat: Top Right (5 cols) */}
-            <div className="md:col-span-5 h-[450px]">
+            <div className="md:col-span-5 min-h-[450px] flex flex-col">
               <ChatWidget
                 result={result}
                 isPro={isPro}
@@ -141,12 +141,12 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             {/* ROW 2 */}
 
             {/* Market Ideas: Bottom Left (6 cols) */}
-            <div className="md:col-span-6 h-[600px]">
+            <div className="md:col-span-6 min-h-[600px] flex flex-col">
               <MarketWidget result={result} isPro={isPro} onUpgrade={onUpgrade} onOpenCopilot={setLaunchpadContext} />
             </div>
 
             {/* Quad Editor: Bottom Right (6 cols) */}
-            <div className="md:col-span-6 h-[600px]">
+            <div className="md:col-span-6 min-h-[600px] flex flex-col">
               <QuadInputWidget
                 data={ikigaiData}
                 onUpdate={setIkigaiData}
