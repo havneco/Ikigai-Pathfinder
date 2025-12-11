@@ -293,6 +293,40 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
           </div>
         </div>
 
+        {/* THE WEDGE (Bottom Full Width) */}
+        <div className="mt-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          {/* Decorative Background */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+
+          {/* Cute Pie Visual (Left) */}
+          <div className="w-32 h-32 shrink-0 relative animate-in zoom-in duration-700">
+            {/* SVG Pie Chart */}
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
+              <circle cx="50" cy="50" r="45" fill="#fff" stroke="#e2e8f0" strokeWidth="2" />
+              {/* The Slice (20% wedge) */}
+              <path d="M50,50 L50,5 A45,45 0 0,1 93,20 z" fill="#4f46e5" stroke="white" strokeWidth="2" />
+              {/* Center Dot */}
+              <circle cx="50" cy="50" r="6" fill="#312e81" />
+            </svg>
+            <div className="absolute top-0 right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
+              START HERE
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 relative z-10 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 mb-3 text-indigo-700 font-bold text-xs uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full">
+              <Zap size={14} /> The Wedge Strategy
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-indigo-900 mb-3">
+              Your "Trojan Horse" into the Market
+            </h3>
+            <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
+              "{selectedIdea.blueprint?.theWedge || "Calculating entry strategy..."}"
+            </p>
+          </div>
+        </div>
+
       </div>
 
     </div>
