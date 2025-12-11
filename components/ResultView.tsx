@@ -134,12 +134,22 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
 
   const pathData = generateSmoothPath(points);
 
+  // Select signals to display
+  const displayedSignals = signals && signals.length > 0 ? signals.slice(0, 2) : [{ type: "Growth", value: "+122%", description: "Search Interest" }];
+
   return (
     <div className="w-full h-64 bg-white rounded-2xl border border-slate-100 p-6 relative overflow-hidden">
       <div className="flex justify-between items-start mb-6">
-        <div className="flex items-baseline gap-3">
-          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider line-clamp-1 max-w-[200px]" title={primarySignal.description}>{primarySignal.description}</h4>
-          <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold shrink-0">{primarySignal.value}</span>
+        <div className="flex gap-8">
+          {displayedSignals.map((sig, i) => (
+            <div key={i}>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{sig.type || "Metric"}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-black text-slate-800">{sig.value}</span>
+                <span className="text-slate-300 cursor-help text-xs" title={sig.description}>ⓘ</span>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="text-2nd text-slate-400 text-xs">Past 12 Months</div>
       </div>
@@ -183,12 +193,12 @@ const TrendChart = ({ signals, data }: { signals?: { type: string, value: string
 };
 
 // --- HELPER: Score Card ---
-const ScoreCard = ({ label, score, colorClass, subLabel }: any) => (
+const ScoreCard = ({ label, score, colorClass, subLabel, explanation }: any) => (
   <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group hover:shadow-md transition-all">
     <div className={`absolute top-0 left-0 w-1 h-full ${colorClass}`}></div>
     <div className="flex justify-between items-start">
       <h5 className="text-sm font-bold text-slate-700">{label}</h5>
-      <span className="text-xs text-slate-400 cursor-help" title={`${label} Score: ${score}/10. Represents ${subLabel}.`}>ⓘ</span>
+      <span className="text-xs text-slate-400 cursor-help" title={explanation || `${label} Score: ${score}/10. Represents ${subLabel}.`}>ⓘ</span>
     </div>
     <div>
       <div className="text-3xl font-serif font-bold text-slate-900 mb-1">{score}</div>
@@ -304,10 +314,10 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
 
             {/* Score Grid */}
             <div className="grid grid-cols-2 gap-3">
-              <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" />
-              <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" />
-              <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" />
-              <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" />
+              <ScoreCard label="Demand" score={selectedIdea.score.demand} subLabel="Market Pull" colorClass="bg-orange-500" explanation={selectedIdea.score.explanations?.demand} />
+              <ScoreCard label="Profit" score={selectedIdea.score.profit} subLabel="Margins" colorClass="bg-emerald-500" explanation={selectedIdea.score.explanations?.profit} />
+              <ScoreCard label="Talent" score={selectedIdea.score.talent} subLabel="Founder Fit" colorClass="bg-blue-500" explanation={selectedIdea.score.explanations?.talent} />
+              <ScoreCard label="Viability" score={selectedIdea.score.complexity ? 10 - selectedIdea.score.complexity : 8} subLabel="Ease of Build" colorClass="bg-purple-500" explanation={selectedIdea.score.explanations?.complexity} />
             </div>
 
             {/* Execution Plan (Condensed) */}

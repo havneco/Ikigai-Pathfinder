@@ -155,14 +155,22 @@ export default async function handler(req: any, res: any) {
 
       OUTPUT FORMAT (JSON ONLY):
       {
-        "score": { "total": 85, "passion": 8, "talent": 9, "demand": 9, "profit": 9, "complexity": 3 },
+        "score": { 
+          "total": 85, "passion": 8, "talent": 9, "demand": 9, "profit": 9, "complexity": 3,
+          "explanations": { 
+             "demand": "High search volume (22k/mo) for 'AI pricing' indicates strong pull.",
+             "profit": "Software margins typically 80%+ with recurring revenue.",
+             "talent": "Matches your 'Good At' sales and tech skills perfectly.",
+             "complexity": "Requires moderate dev work but low capital intensity."
+          }
+        },
         "validation": {
           "whyNow": "Detailed timing analysis.",
           "marketGap": "The missing piece.",
           "revenuePotential": "Detailed calculation ($X/mo)",
           "signals": [
-            { "type": "Reddit", "value": "High Activity", "description": "Frequent complaints about X in r/saas" },
-            { "type": "Market", "value": "+120% Growth", "description": "Rising demand for Y solutions" }
+            { "type": "Search Volume", "value": "22k/mo", "description": "Strictly related keyword searches" },
+            { "type": "Market Growth", "value": "+120% YoY", "description": "Rising demand for Y solutions" }
           ],
           "community": [ { "name": "r/target_audience", "url": "reddit.com/r/...", "size": "50k Members" } ],
           "trendCurve": [20, 25, 30, 45, 40, 50, 60, 65, 80, 85, 90, 100]

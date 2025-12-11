@@ -49,16 +49,25 @@ export interface CommunitySignal {
   score: number; // 1-10 intensity
 }
 
+export interface Score {
+  total: number; // 0-100
+  passion: number; // 0-10
+  talent: number; // 0-10
+  demand: number; // 0-10
+  profit: number; // 0-10
+  complexity: number; // 0-10
+  explanations?: {
+    demand: string;
+    profit: string;
+    talent: string;
+    complexity: string;
+  };
+}
+
 export interface MarketOpportunity {
   title: string;
   description: string;
-  score: {
-    total: number; // 0-100
-    passion: number; // 0-10
-    talent: number; // 0-10
-    demand: number; // 0-10
-    profit: number; // 0-10
-  };
+  score: Score;
   validation?: {
     whyNow: string;
     marketGap: string;
