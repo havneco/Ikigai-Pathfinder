@@ -140,13 +140,15 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
 
             {/* ROW 2 */}
 
-            {/* Market Ideas: Bottom Left (6 cols) */}
-            <div className="md:col-span-6 min-h-[600px] flex flex-col">
+            {/* Market Ideas: Full Width (12 cols) for better readability */}
+            <div className="md:col-span-12 min-h-[500px] flex flex-col">
               <MarketWidget result={result} isPro={isPro} onUpgrade={onUpgrade} onOpenCopilot={setLaunchpadContext} />
             </div>
 
-            {/* Quad Editor: Bottom Right (6 cols) */}
-            <div className="md:col-span-6 min-h-[600px] flex flex-col">
+            {/* ROW 3 */}
+
+            {/* Quad Editor: Full Width (12 cols) */}
+            <div className="md:col-span-12 min-h-[500px] flex flex-col">
               <QuadInputWidget
                 data={ikigaiData}
                 onUpdate={setIkigaiData}

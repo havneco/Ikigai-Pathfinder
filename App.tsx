@@ -279,12 +279,42 @@ const App = () => {
       // 4. Stream Phase C: Deep Enrichment (The Spiral)
       const enrichedIdeas = [...initialIdeas];
       for (let i = 0; i < enrichedIdeas.length; i++) {
-        const deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
+        let deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
+
+        // Retry logic or Fallback
+        if (!deepData) {
+          console.warn(`Enrichment failed for ${enrichedIdeas[i].title}. Retrying...`);
+          // Simple retry
+          deepData = await enrichIdea(enrichedIdeas[i], ikigaiData);
+        }
+
         if (deepData) {
           enrichedIdeas[i] = { ...enrichedIdeas[i], ...deepData };
-          // Update UI live per card
-          setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
+        } else {
+          // FALLBACK: If it still fails, populate with "Analysis Failed" data so loader stops
+          enrichedIdeas[i] = {
+            ...enrichedIdeas[i],
+            validation: {
+              whyNow: "Market data unavailable at this moment.",
+              marketGap: "Could not verify market gap.",
+              signals: [], // Empty signals tells UI to stop loading but show "no signals"
+              community: [],
+              revenuePotential: "Unknown"
+            },
+            blueprint: {
+              role: "Founder",
+              whyYou: "Match based on skills",
+              dayInLife: "Researching...",
+              theWedge: "Start with a simple MVP service.",
+              valueLadder: { leadMagnet: "Checklist", frontendOffer: "Consultation", coreOffer: "Retainer" },
+              executionPlan: ["Validate manually", "Build audience", "Launch MVP"]
+            },
+            launchpad: []
+          };
         }
+
+        // Update UI live per card
+        setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
       }
 
       // 5. Final Save
