@@ -392,10 +392,7 @@ const App = () => {
             launchpad: []
           };
         }
-
-        // Update UI live per card
-        setResult(prev => prev ? ({ ...prev, marketIdeas: [...enrichedIdeas] }) : null);
-      }
+      }));
 
       // 5. Final Save (Auto-Save to Dashboard)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
