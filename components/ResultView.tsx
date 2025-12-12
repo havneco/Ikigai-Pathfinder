@@ -69,7 +69,7 @@ export const StatementWidget = ({ result }: { result: IkigaiResult }) => (
 
 // 2. Venn Widget
 export const VennWidget = ({ result }: { result: IkigaiResult }) => (
-  <div className="bg-white rounded-3xl p-4 shadow-lg border border-slate-100 h-full flex items-center justify-center">
+  <div className="flex items-center justify-center">
     <VennDiagram
       activeSection="center"
       labels={{

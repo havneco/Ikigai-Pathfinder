@@ -114,7 +114,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             {/* SECTION 1: HERO (Venn + Headline) */}
             <div className="w-full flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
               {/* Venn Diagram */}
-              <div className="w-64 md:w-80 mb-8 transform hover:scale-105 transition-transform duration-500">
+              <div className="w-80 md:w-96 mb-8 transform hover:scale-105 transition-transform duration-500">
                 <VennWidget result={result} />
               </div>
 
