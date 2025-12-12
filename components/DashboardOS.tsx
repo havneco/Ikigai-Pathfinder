@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IkigaiState, IkigaiResult, User } from '../types';
 import { StatementWidget, VennWidget, MarketWidget } from './ResultView';
 import SparkDashboard from './SparkDashboard';
@@ -27,6 +27,14 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
   const [activeTab, setActiveTab] = useState<'board' | 'tasks'>('board');
   const [viewMode, setViewMode] = useState<'pathfinder' | 'spark'>('pathfinder');
   const [launchpadContext, setLaunchpadContext] = useState<string | null>(null);
+  const [isMorphing, setIsMorphing] = useState(false);
+
+  // Logo Transition Logic
+  useEffect(() => {
+    setIsMorphing(true);
+    const timer = setTimeout(() => setIsMorphing(false), 500); // 500ms transition time
+    return () => clearTimeout(timer);
+  }, [viewMode]);
 
   const handleReAnalysis = async () => {
     setIsAnalysing(true);
@@ -72,12 +80,31 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
       {/* GLOBAL HEADER */}
       <header className={`px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-[60] backdrop-blur-xl border-b transition-colors duration-500 ${isSpark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
 
-        {/* LOGO */}
-        <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-serif font-bold text-lg shadow-sm ${isSpark ? 'bg-amber-500 text-slate-900' : 'bg-slate-900 text-white'}`}>
-            {isSpark ? <Zap size={18} fill="currentColor" /> : "IK"}
-          </div>
-          <span className={`hidden md:inline font-serif font-bold text-lg ${isSpark ? 'text-slate-100' : 'text-slate-900'}`}>
+        {/* LOGO (MORPHING) */}
+        <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity w-40 relative h-10">
+          {/* IMAGE 1: IKIGAI LOGO (Visible when Pathfinder & Not Morphing) */}
+          <img
+            src="/IkigaiLogo.png"
+            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-500 ${!isSpark && !isMorphing ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+            alt="Ikigai Pathfinder"
+          />
+
+          {/* IMAGE 2: TRANSITION LOGO (Visible only during Morph) */}
+          <img
+            src="/TransitionLogo.png"
+            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-300 ${isMorphing ? 'opacity-100 scale-110 rotate-180' : 'opacity-0 scale-90 rotate-0'}`}
+            alt="Transforming..."
+          />
+
+          {/* IMAGE 3: SPARK LOGO (Visible when Spark & Not Morphing) */}
+          <img
+            src="/SparkLogo.png"
+            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-500 ${isSpark && !isMorphing ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+            alt="Ikigai Spark"
+          />
+
+          {/* TEXT LABEL (Fades with mode) */}
+          <span className={`absolute left-10 font-serif font-bold text-lg transition-all duration-500 ${isSpark ? 'text-slate-100 translate-x-1' : 'text-slate-900 translate-x-0'}`}>
             {isSpark ? "Spark Studio" : "Pathfinder"}
           </span>
         </div>
