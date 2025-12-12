@@ -27,15 +27,7 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
         <div className="h-full bg-slate-950 text-slate-100 font-sans flex flex-col md:flex-row overflow-hidden">
 
             {/* SIDEBAR NAVIGATION */}
-            <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 relative z-20">
-                <div className="p-6 border-b border-slate-800 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-900">
-                        <Zap size={20} fill="currentColor" className="text-slate-900" />
-                    </div>
-                    <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 to-orange-400">
-                        SPARK
-                    </span>
-                </div>
+            <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 relative z-20 pt-4">
 
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto w-full">
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 py-2">Core</div>
