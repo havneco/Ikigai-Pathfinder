@@ -27,45 +27,6 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
     return (
         <div className="h-full bg-slate-950 text-slate-100 font-sans flex flex-col md:flex-row overflow-hidden">
 
-            {/* SIDEBAR NAVIGATION */}
-            <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 relative z-20 pt-4">
-
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto w-full">
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 py-2">Core</div>
-                    <SidebarItem
-                        icon={<Layout size={18} />}
-                        label="Mission Control"
-                        active={activeModule === 'mission'}
-                        onClick={() => setActiveModule('mission')}
-                    />
-                    <SidebarItem
-                        icon={<Calendar size={18} />}
-                        label="Launch Timeline"
-                        active={activeModule === 'timeline'}
-                        onClick={() => setActiveModule('timeline')}
-                    />
-
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 py-2 mt-6">Studio</div>
-                    <SidebarItem
-                        icon={<PenTool size={18} />}
-                        label="Copywriter"
-                        onClick={() => setActiveModule('studio')}
-                    />
-                    <SidebarItem
-                        icon={<ImageIcon size={18} />}
-                        label="Visual Lab"
-                        locked={true}
-                        badge="5 Sparks"
-                    />
-                    <SidebarItem
-                        icon={<Video size={18} />}
-                        label="Motion Engine"
-                        locked={true}
-                        badge="50 Sparks"
-                    />
-                </nav>
-            </aside>
-
             {/* MAIN CONTENT */}
             <main className="flex-1 relative overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
 
@@ -77,11 +38,35 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
                 </div>
 
                 {/* Header (Sticky below Hero) */}
-                <div className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/50">
+                <div className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/50 transition-all duration-300">
                     <header className="max-w-5xl mx-auto h-16 flex items-center justify-between px-6 md:px-12">
-                        <h2 className="text-lg font-medium text-slate-300 flex items-center gap-2">
-                            {activeModule === 'mission' ? 'Mission Control' : activeModule === 'timeline' ? 'Launch Timeline' : 'Creative Studio'}
-                        </h2>
+
+                        {/* NAVIGATION TABS */}
+                        <div className="flex items-center gap-6">
+                            <button
+                                onClick={() => setActiveModule('mission')}
+                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeModule === 'mission' ? 'text-amber-500' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                <Layout size={16} /> Mission Control
+                            </button>
+                            <button
+                                onClick={() => setActiveModule('timeline')}
+                                className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${activeModule === 'timeline' ? 'text-amber-500' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                <Calendar size={16} /> Timeline
+                            </button>
+                            <div className="h-4 w-px bg-slate-800 mx-2"></div>
+                            <button
+                                onClick={() => setActiveModule('studio')}
+                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeModule === 'studio' ? 'text-amber-500' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                <PenTool size={16} /> Studio
+                            </button>
+                            <button className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-600 cursor-not-allowed">
+                                <Video size={16} /> Motion <Lock size={10} />
+                            </button>
+                        </div>
+
                         <div className="flex items-center gap-4">
                             <button className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-bold shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105">
                                 <Play size={14} fill="currentColor" /> Ignite Campaign
