@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { IkigaiState, IkigaiResult, User } from '../types';
 import { StatementWidget, VennWidget, MarketWidget } from './ResultView';
+import SparkDashboard from './SparkDashboard';
 import FloatingChat from './FloatingChat';
 import QuadInputWidget from './QuadInputWidget';
 import TaskBoard from './TaskBoard';
-import { Crown, LogOut, LayoutGrid, CheckSquare } from 'lucide-react';
+import { Crown, LogOut, LayoutGrid, CheckSquare, Zap } from 'lucide-react';
 import { generateStructure, generateIdeaTitles, enrichIdea } from '../services/geminiService';
 
 interface DashboardOSProps {
@@ -24,6 +25,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
 }) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [activeTab, setActiveTab] = useState<'board' | 'tasks'>('board');
+  const [viewMode, setViewMode] = useState<'pathfinder' | 'spark'>('pathfinder');
   const [launchpadContext, setLaunchpadContext] = useState<string | null>(null);
 
   const handleReAnalysis = async () => {
@@ -62,15 +64,34 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
     }
   };
 
+  if (viewMode === 'spark') {
+    return (
+      <div className="relative">
+        {/* Simple Back Navigation for Spark Mode */}
+        <div className="fixed bottom-6 left-6 z-50">
+          <button
+            onClick={() => setViewMode('pathfinder')}
+            className="bg-slate-900 text-slate-400 border border-slate-700 px-4 py-2 rounded-full text-xs font-bold hover:text-white hover:border-amber-500 transition-all flex items-center gap-2 shadow-lg"
+          >
+            ← Return to Pathfinder
+          </button>
+        </div>
+        <SparkDashboard user={user} result={result} ikigaiData={ikigaiData} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 relative">
 
       {/* Top Bar (Simplified) */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
-        {/* ... Identical Header Content ... */}
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-serif font-bold text-lg shadow-md">IK</div>
+        <div onClick={() => console.log("Logo Click")} className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">IK</span>
+          <span className="hidden md:inline">Pathfinder</span>
+        </div>
 
+        <div className="flex items-center gap-4">
           <nav className="flex bg-slate-100 p-1 rounded-lg">
             <button
               onClick={() => setActiveTab('board')}
@@ -85,6 +106,16 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
               <CheckSquare size={14} /> Tasks
             </button>
           </nav>
+
+          {/* SPARK TOGGLE (Pro Feature) */}
+          <div className="h-6 w-px bg-slate-300 mx-2"></div>
+          <button
+            onClick={() => isPro ? setViewMode('spark') : onUpgrade()}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${isPro ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:scale-105' : 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'}`}
+          >
+            <Zap size={14} fill={isPro ? "currentColor" : "none"} />
+            {isPro ? "Go to Spark" : "Unlock Spark"}
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
