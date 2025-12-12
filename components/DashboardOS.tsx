@@ -177,7 +177,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             <div className="max-w-5xl mx-auto flex flex-col items-center gap-12 p-6 md:p-12">
               {/* SECTION 1: HERO (Venn + Headline) */}
               <div className="w-full flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="w-80 md:w-96 mb-8 transform hover:scale-105 transition-transform duration-500">
+                <div className="w-full max-w-lg md:max-w-xl mb-8 transform hover:scale-105 transition-transform duration-500">
                   <VennWidget result={result} mode={viewMode} />
                 </div>
                 <div className="max-w-3xl">
