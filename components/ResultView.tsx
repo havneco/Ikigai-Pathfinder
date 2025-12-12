@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IkigaiResult, User, MarketOpportunity, IkigaiState } from '../types';
-import VennDiagram from './VennDiagram';
+import { VennDiagram } from './VennDiagram';
 import { Send, Target, Award, Globe, Wallet, ExternalLink, Bot, User as UserIcon, Lock, Activity, Zap, Check, Copy, TrendingUp, Clock, Flame, CheckCircle2, X, Search, Users, DollarSign, Sparkles, ChevronRight, Crown, Loader2, Printer } from 'lucide-react';
 import { chatWithCopilot } from '../services/geminiService';
 import MarketCard from './MarketCard';
@@ -68,7 +68,7 @@ export const StatementWidget = ({ result }: { result: IkigaiResult }) => (
 );
 
 // 2. Venn Widget
-export const VennWidget = ({ result }: { result: IkigaiResult }) => (
+export const VennWidget = ({ result, mode = 'pathfinder' }: { result: IkigaiResult; mode?: 'pathfinder' | 'spark' }) => (
   <div className="flex items-center justify-center">
     <VennDiagram
       activeSection="center"
@@ -79,6 +79,7 @@ export const VennWidget = ({ result }: { result: IkigaiResult }) => (
         vocation: result.intersectionPoints.vocation,
         ikigai: result.statement
       }}
+      mode={mode}
     />
   </div>
 );

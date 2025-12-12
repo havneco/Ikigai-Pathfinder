@@ -1,6 +1,7 @@
 import React from 'react';
 
-interface VennProps {
+interface VennDiagramProps {
+  activeSection?: string;
   labels?: {
     passion?: string;
     mission?: string;
@@ -8,85 +9,93 @@ interface VennProps {
     vocation?: string;
     ikigai?: string;
   };
-  activeSection?: 'love' | 'good' | 'world' | 'paid' | 'center' | 'none';
+  mode?: 'pathfinder' | 'spark';
 }
 
-const VennDiagram: React.FC<VennProps> = ({ labels, activeSection = 'none' }) => {
+export const VennDiagram: React.FC<VennDiagramProps> = ({ activeSection, labels, mode = 'pathfinder' }) => {
+  const isSpark = mode === 'spark';
 
-  const getOpacity = (section: string) => {
-    if (activeSection === 'none' || activeSection === 'center') return 0.6;
-    return activeSection === section ? 0.8 : 0.2;
+  // Label Configuration
+  const defaultLabels = isSpark ? {
+    top: "Vision & Roadmap",
+    left: "Skill Application",
+    right: "Audience Engagement",
+    bottom: "Tools & Resources",
+    center: "SPARK"
+  } : {
+    top: "What You Love",
+    left: "What You Are Good At",
+    right: "What The World Needs",
+    bottom: "What You Can Be Paid For",
+    center: "IKIGAI"
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto aspect-square flex items-center justify-center">
-      <svg viewBox="0 0 500 500" className="w-full h-full drop-shadow-xl">
-        {/* Top Circle: LOVE */}
-        <circle
-          cx="250"
-          cy="170"
-          r="120"
-          fill="#FF6B6B"
-          fillOpacity={getOpacity('love')}
-          className="transition-all duration-500"
-        />
-        {/* Right Circle: NEEDS */}
-        <circle
-          cx="330"
-          cy="290"
-          r="120"
-          fill="#45B7D1"
-          fillOpacity={getOpacity('world')}
-          className="transition-all duration-500"
-        />
-        {/* Left Circle: GOOD AT */}
-        <circle
-          cx="170"
-          cy="290"
-          r="120"
-          fill="#4ECDC4"
-          fillOpacity={getOpacity('good')}
-          className="transition-all duration-500"
-        />
-        {/* Bottom Circle: PAID FOR */}
-        <circle
-          cx="250"
-          cy="370"
-          r="120"
-          fill="#F7B731"
-          fillOpacity={getOpacity('paid')}
-          className="transition-all duration-500"
-        />
+    <div className="relative w-full aspect-square flex items-center justify-center select-none group">
 
-        {/* Text Labels */}
-        <text x="250" y="100" textAnchor="middle" className="text-xs font-bold fill-rose-900 opacity-80 uppercase tracking-widest">Love</text>
-        <text x="70" y="290" textAnchor="middle" className="text-xs font-bold fill-teal-900 opacity-80 uppercase tracking-widest">Good At</text>
-        <text x="430" y="290" textAnchor="middle" className="text-xs font-bold fill-sky-900 opacity-80 uppercase tracking-widest">Needs</text>
-        <text x="250" y="470" textAnchor="middle" className="text-xs font-bold fill-amber-900 opacity-80 uppercase tracking-widest">Paid</text>
+      {/* BACKGROUND IMAGE ASSET */}
+      <div className={`absolute inset-0 w-full h-full transition-all duration-700 ${isSpark ? 'filter invert hue-rotate-[160deg] saturate-[3] contrast-125' : ''}`}>
+        <img
+          src="/PathfinderVenn.png"
+          alt="Venn Diagram"
+          className="w-full h-full object-contain drop-shadow-2xl animate-in fade-in zoom-in-95 duration-1000"
+        />
+      </div>
 
-        {/* Intersection Labels (Only show on result) */}
-        {labels && (
-          <>
-            <text x="250" y="290" textAnchor="middle" dominantBaseline="middle" className="text-sm font-black fill-white drop-shadow-md uppercase tracking-tight">
-              {labels.ikigai?.split(' ').slice(0, 2).join(' ') || "IKIGAI"}
-            </text>
-
-            <text x="210" y="210" textAnchor="middle" className="text-[10px] font-semibold fill-white/90">Passion</text>
-            <text x="290" y="210" textAnchor="middle" className="text-[10px] font-semibold fill-white/90">Mission</text>
-            <text x="210" y="370" textAnchor="middle" className="text-[10px] font-semibold fill-white/90">Profession</text>
-            <text x="290" y="370" textAnchor="middle" className="text-[10px] font-semibold fill-white/90">Vocation</text>
-          </>
-        )}
-      </svg>
-
-      {labels?.ikigai && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center animate-pulse">
-          </div>
-        </div>
+      {/* GLOW EFFECTS (Overlay) */}
+      {isSpark && (
+        <div className="absolute inset-0 bg-amber-500/10 mix-blend-screen rounded-full blur-3xl animate-pulse"></div>
       )}
+
+      {/* LABELS CONTAINER */}
+      <div className={`absolute inset-0 w-full h-full font-serif font-bold text-center flex flex-col items-center justify-center ${isSpark ? 'text-amber-100' : 'text-slate-800'}`}>
+
+        {/* TOP */}
+        <div className="absolute top-[8%] text-[0.6rem] md:text-[0.7rem] tracking-widest uppercase opacity-80 max-w-[20%] leading-tight">
+          {defaultLabels.top}
+        </div>
+
+        {/* LEFT */}
+        <div className="absolute left-[4%] text-[0.6rem] md:text-[0.7rem] tracking-widest uppercase opacity-80 max-w-[20%] leading-tight">
+          {defaultLabels.left}
+        </div>
+
+        {/* RIGHT */}
+        <div className="absolute right-[4%] text-[0.6rem] md:text-[0.7rem] tracking-widest uppercase opacity-80 max-w-[20%] leading-tight">
+          {defaultLabels.right}
+        </div>
+
+        {/* BOTTOM */}
+        <div className="absolute bottom-[8%] text-[0.6rem] md:text-[0.7rem] tracking-widest uppercase opacity-80 max-w-[20%] leading-tight">
+          {defaultLabels.bottom}
+        </div>
+
+        {/* CENTER (The Core) */}
+        <div className={`absolute z-10 transition-all duration-500 transform group-hover:scale-110 ${isSpark ? 'text-white drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]' : 'text-slate-900 drop-shadow-md'}`}>
+          <h1 className="text-2xl md:text-3xl tracking-widest font-bold">
+            {defaultLabels.center}
+          </h1>
+        </div>
+
+        {/* INTERSECTIONS */}
+        {/* Top-Left */}
+        <div className={`absolute top-[30%] left-[28%] text-[0.5rem] md:text-[0.6rem] font-sans font-bold tracking-wider opacity-60 ${isSpark ? 'text-amber-200' : 'text-slate-600'}`}>
+          {isSpark ? "DEVELOP" : "PASSION"}
+        </div>
+        {/* Top-Right */}
+        <div className={`absolute top-[30%] right-[28%] text-[0.5rem] md:text-[0.6rem] font-sans font-bold tracking-wider opacity-60 ${isSpark ? 'text-amber-200' : 'text-slate-600'}`}>
+          {isSpark ? "MARKET" : "MISSION"}
+        </div>
+        {/* Bottom-Left */}
+        <div className={`absolute bottom-[30%] left-[28%] text-[0.5rem] md:text-[0.6rem] font-sans font-bold tracking-wider opacity-60 ${isSpark ? 'text-amber-200' : 'text-slate-600'}`}>
+          {isSpark ? "PRODUCE" : "PROFESSION"}
+        </div>
+        {/* Bottom-Right */}
+        <div className={`absolute bottom-[30%] right-[28%] text-[0.5rem] md:text-[0.6rem] font-sans font-bold tracking-wider opacity-60 ${isSpark ? 'text-amber-200' : 'text-slate-600'}`}>
+          {isSpark ? "SCALE" : "VOCATION"}
+        </div>
+
+      </div>
     </div>
   );
 };
-
-export default VennDiagram;

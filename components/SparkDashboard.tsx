@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IkigaiResult, User, IkigaiState } from '../types';
 import { Zap, Play, Box, Image as ImageIcon, Video, Mic, PenTool, Layout, Calendar, ChevronRight, Lock, Plus, Search, Settings } from 'lucide-react';
+import { VennDiagram } from './VennDiagram';
 
 interface SparkDashboardProps {
     user: User | null;
@@ -86,20 +87,21 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
                     {/* WELCOME / PROJECT STATUS */}
                     <div className="flex flex-col md:flex-row gap-6">
                         {/* Main Card */}
-                        <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all duration-700"></div>
-                            <div className="relative z-10">
+                        <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group flex items-center justify-between gap-6">
+                            <div className="absolute top-0 right-0 p-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all duration-700 pointer-events-none"></div>
+
+                            <div className="relative z-10 flex-1">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="px-2 py-1 bg-amber-900/30 text-amber-500 text-xs font-bold rounded border border-amber-900/50 uppercase tracking-wide inline-block">Active Venture</div>
-                                    <ChevronRight className="text-slate-600" size={20} />
                                 </div>
                                 <h1 className="text-3xl font-serif font-bold text-white mb-2">{projects[0].title}</h1>
-                                <p className="text-slate-400 text-sm max-w-xl">
+                                <p className="text-slate-400 text-sm max-w-xl mb-6">
                                     {result.marketIdeas?.[0]?.validation?.revenuePotential || "High Growth"} • {result.marketIdeas?.[0]?.blueprint?.role} Mode
                                 </p>
 
-                                <div className="mt-8 flex gap-4">
-                                    <div className="flex-1">
+                                <div className="flex items-center gap-4">
+                                    {/* Launch Readiness */}
+                                    <div className="flex-1 max-w-xs">
                                         <div className="flex justify-between text-xs text-slate-500 mb-2">
                                             <span>Launch Readiness</span>
                                             <span>15%</span>
@@ -110,6 +112,12 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* SPARK VENN DIAGRAM */}
+                            <div className="hidden md:block w-48 h-48 lg:w-56 lg:h-56 shrink-0 relative opacity-90 group-hover:opacity-100 transition-opacity">
+                                <VennDiagram mode="spark" activeSection="center" />
+                            </div>
+
                         </div>
 
                         {/* Quick Stats / Sparks */}

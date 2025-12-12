@@ -178,7 +178,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
               {/* SECTION 1: HERO (Venn + Headline) */}
               <div className="w-full flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="w-80 md:w-96 mb-8 transform hover:scale-105 transition-transform duration-500">
-                  <VennWidget result={result} />
+                  <VennWidget result={result} mode={viewMode} />
                 </div>
                 <div className="max-w-3xl">
                   <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">Your Ikigai Is</h2>
