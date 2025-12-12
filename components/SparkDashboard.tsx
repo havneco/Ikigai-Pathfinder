@@ -70,7 +70,7 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
             <main className="flex-1 flex flex-col relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
 
                 {/* Header */}
-                <header className="h-16 border-b border-slate-800/50 flex items-center justify-between px-6 backdrop-blur-sm sticky top-0 z-10">
+                <header className="h-16 border-b border-slate-800/50 flex items-center justify-between px-6 backdrop-blur-sm sticky top-0 z-10 shrink-0">
                     <h2 className="text-lg font-medium text-slate-300 flex items-center gap-2">
                         {activeModule === 'mission' ? 'Mission Control' : activeModule === 'timeline' ? 'Launch Timeline' : 'Creative Studio'}
                     </h2>
@@ -83,6 +83,13 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
 
                 {/* Content Viewport */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+
+                    {/* HERO VENN (Centered "Same Space" as Pathfinder) */}
+                    <div className="w-full flex items-center justify-center mb-0">
+                        <div className="w-80 md:w-96 transform hover:scale-105 transition-transform duration-500">
+                            <VennDiagram mode="spark" />
+                        </div>
+                    </div>
 
                     {/* WELCOME / PROJECT STATUS */}
                     <div className="flex flex-col md:flex-row gap-6">
@@ -111,11 +118,6 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* SPARK VENN DIAGRAM */}
-                            <div className="hidden md:block w-48 h-48 lg:w-56 lg:h-56 shrink-0 relative opacity-90 group-hover:opacity-100 transition-opacity">
-                                <VennDiagram mode="spark" activeSection="center" />
                             </div>
 
                         </div>
