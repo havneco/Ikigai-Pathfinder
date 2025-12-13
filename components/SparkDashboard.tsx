@@ -113,10 +113,69 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result, ikigaiDat
                                             {user ? "500" : "0"} <span className="text-sm text-indigo-400 font-sans font-normal">Sparks</span>
                                         </div>
                                     </div>
-                                    <div className="mt-6">
+
+                                    {/* SMART ACTIONS */}
+                                    <div className="mt-6 space-y-3">
                                         <button className="w-full py-2 bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/50 rounded-lg text-indigo-200 text-sm font-medium transition-colors">
                                             Top Up Balance
                                         </button>
+
+                                        {selectedIdea && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!user) return alert("Log in to generate a plan.");
+                                                    const confirm = window.confirm("Generate a 4-week Growth Plan? (Costs 20 Sparks)");
+                                                    if (!confirm) return;
+
+                                                    try {
+                                                        // Call API
+                                                        const res = await fetch('/api/analyze', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                type: 'generate_smart_roadmap',
+                                                                ikigaiData: {
+                                                                    ideaContext: selectedIdea,
+                                                                    blueprint: selectedIdea.blueprint
+                                                                }
+                                                            })
+                                                        });
+                                                        const data = await res.json();
+
+                                                        if (data.tasks) {
+                                                            // Bulk Insert
+                                                            const today = new Date();
+                                                            const tasksToInsert = data.tasks.map((t: any) => {
+                                                                const due = new Date();
+                                                                due.setDate(today.getDate() + (t.dueInDays || 0));
+
+                                                                return {
+                                                                    user_id: user.id,
+                                                                    title: t.title,
+                                                                    description: t.description,
+                                                                    status: 'todo',
+                                                                    priority: t.priority || 'medium',
+                                                                    due_date: due.toISOString(),
+                                                                    ai_generated: true,
+                                                                    quadrant: t.category // funnel, sales, etc
+                                                                };
+                                                            });
+
+                                                            const { error } = await supabase.from('tasks').insert(tasksToInsert);
+                                                            if (!error) alert(`Success! Added ${tasksToInsert.length} tasks to your Action Board.`);
+                                                            else throw error;
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        alert("Failed to generate plan.");
+                                                    }
+                                                }}
+                                                className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold shadow-lg transition-all"
+                                            >
+                                                <Zap size={14} className="inline mr-2" fill="currentColor" />
+                                                Generate Growth Plan
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -238,6 +238,45 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // 4. SMART ROADMAP MODE (Calendar/Tasks)
+    if (type === 'generate_smart_roadmap') {
+      const { ideaContext, blueprint } = ikigaiData;
+
+      const prompt = `
+        You are an elite Growth Hacker and Product Manager.
+        PROJECT: ${ideaContext.title}
+        DESCRIPTION: ${ideaContext.description}
+        STRATEGY: ${blueprint.theWedge}
+
+        Generate a high-intensity, 4-WEEK LAUNCH CALENDAR.
+        Focus on "Funnel Hacking", "Sales Process", and "Content Velocity".
+        
+        Create specific, actionable tasks.
+        
+        OUTPUT FORMAT (JSON ONLY):
+        {
+          "tasks": [
+            { "title": "Analyze Competitor Funnel", "description": "Buy typical competitor product X and screenshot every step.", "dueInDays": 0, "priority": "high", "category": "funnel" },
+            { "title": "Draft Cold Email Seq", "description": "Write 3-touch sequence using PAS framework.", "dueInDays": 2, "priority": "high", "category": "sales" }
+          ]
+        }
+        
+        RULES:
+        - Generate exactly 10-15 key tasks spread over 28 days.
+        - Ensure a logical sequence (Research -> Build -> Outreach -> Launch).
+        - NO MARKDOWN.
+        `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+      const cleanedText = cleanJsonString(response.text || "{}");
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(cleanedText);
+    }
+
     return res.status(400).send("Unknown Type");
 
   } catch (error: any) {
