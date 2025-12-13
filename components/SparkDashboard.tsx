@@ -33,7 +33,7 @@ const SparkDashboard: React.FC<SparkDashboardProps> = ({ user, result }) => {
                 {/* HERO VENN (Centered "Same Space" as Pathfinder) */}
                 <div className="w-full flex items-center justify-center p-6 md:p-12 pb-0">
                     <div className="w-full max-w-lg md:max-w-xl transform hover:scale-105 transition-transform duration-500">
-                        <VennDiagram mode="spark" />
+                        <VennDiagram mode="spark" labels={{ centerLabel: projects[0].title }} />
                     </div>
                 </div>
 

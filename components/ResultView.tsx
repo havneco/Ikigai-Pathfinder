@@ -77,7 +77,8 @@ export const VennWidget = ({ result, mode = 'pathfinder' }: { result: IkigaiResu
         mission: result.intersectionPoints.mission,
         profession: result.intersectionPoints.profession,
         vocation: result.intersectionPoints.vocation,
-        ikigai: result.statement
+        ikigai: result.statement,
+        centerLabel: result.marketIdeas?.[0]?.title || "My Purpose"
       }}
       mode={mode}
     />
