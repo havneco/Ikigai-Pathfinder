@@ -20,7 +20,7 @@ const App = () => {
   // User & Subscription State
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [isSessionLoading, setIsSessionLoading] = useState(false);
   // UNLOCKED: Everyone is a Founder by default
   const [isPro, setIsPro] = useState(true);
   const [proUserCount, setProUserCount] = useState(7);
