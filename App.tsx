@@ -523,7 +523,7 @@ const App = () => {
         {step === Step.WELCOME && (
           <>
             {/* BACKGROUND HERO */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[20%] -z-10 pointer-events-none select-none opacity-40 origin-top">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[20%] -z-10 pointer-events-none select-none origin-top">
               <HeroIkigai className="w-[140vw] md:w-[1400px]" />
             </div>
 
