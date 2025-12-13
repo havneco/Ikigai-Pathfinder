@@ -17,7 +17,7 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ mode = 'pathfinder' })
         <img
           src="/IkigaiVenn.png"
           alt="Ikigai Diagram"
-          className="w-full h-full object-contain drop-shadow-2xl"
+          className="w-full h-full object-contain drop-shadow-2xl mix-blend-multiply"
         />
       </div>
 
@@ -28,7 +28,7 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ mode = 'pathfinder' })
         <img
           src="/SparkVenn.png"
           alt="Spark Diagram"
-          className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+          className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(245,158,11,0.5)] mix-blend-screen"
         />
       </div>
 
