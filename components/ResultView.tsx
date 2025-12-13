@@ -7,6 +7,7 @@ import MarketCard from './MarketCard';
 import FinancialSimulator from './FinancialSimulator';
 import CompetitorWidget from './CompetitorWidget';
 import ReactMarkdown from 'react-markdown';
+import { BlueprintModal } from './BlueprintModal';
 
 // Wrapper for Stripe Button
 const StripeBuyButton = (props: any) => React.createElement('stripe-buy-button', props);
@@ -267,6 +268,7 @@ const ScoreCard = ({ label, score, colorClass, subLabel, explanation }: any) => 
 // 4. Market Widget (Tabbed Interface)
 export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUpgrade: () => void; onOpenCopilot: (context: string) => void }> = ({ result, isPro, onUpgrade, onOpenCopilot }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const [showBlueprint, setShowBlueprint] = useState(false);
 
   if (!result.marketIdeas || result.marketIdeas.length === 0) {
     // Loading / Empty State
@@ -282,6 +284,14 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
 
   return (
     <div className="w-full glass-card rounded-3xl overflow-hidden flex flex-col min-h-[600px] shadow-xl isolate">
+
+      {/* Blueprint Modal */}
+      <BlueprintModal
+        idea={selectedIdea}
+        isOpen={showBlueprint}
+        onClose={() => setShowBlueprint(false)}
+        onOpenCopilot={onOpenCopilot}
+      />
 
       {/* TABS HEADER */}
       <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -305,6 +315,12 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
         {/* Actions */}
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowBlueprint(true)}
+            className="hidden md:flex items-center gap-2 p-2 px-4 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-xs rounded-lg hover:bg-indigo-100 hover:border-indigo-200 transition-colors shadow-sm"
+          >
+            <Crown size={14} className="text-amber-500" /> View Full Blueprint
+          </button>
+          <button
             onClick={() => window.print()}
             className="hidden md:flex p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:text-indigo-600 hover:border-indigo-200 transition-colors"
             title="Save Plan as PDF"
@@ -319,7 +335,7 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
       <div className="p-8 flex-1 overflow-y-auto bg-white/50">
 
         {/* Title & Tags */}
-        <div className="mb-8">
+        <div className="mb-8 group cursor-pointer" onClick={() => setShowBlueprint(true)}>
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded">
               Score: {selectedIdea.score?.total || 0}/100
@@ -331,8 +347,11 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                 selectedIdea.validation?.revenuePotential || "High Revenue"
               )}
             </span>
+            <span className="ml-auto flex items-center gap-1 text-xs font-bold text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+              Click to expand <ExternalLink size={10} />
+            </span>
           </div>
-          <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2">
+          <h2 className="text-3xl font-serif font-black text-slate-900 leading-tight mb-2 group-hover:text-indigo-700 transition-colors">
             {selectedIdea.title}
           </h2>
           <p className="text-lg text-slate-600 leading-relaxed font-serif max-w-4xl">
@@ -374,10 +393,10 @@ export const MarketWidget: React.FC<{ result: IkigaiResult; isPro: boolean; onUp
                 ))}
               </div>
               <button
-                onClick={() => onOpenCopilot(`Initialize Launchpad for: ${selectedIdea.title}`)}
+                onClick={() => setShowBlueprint(true)}
                 className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2"
               >
-                <Bot size={16} /> Initialize Launchpad
+                <Target size={16} /> View Full Execution Plan
               </button>
             </div>
 
