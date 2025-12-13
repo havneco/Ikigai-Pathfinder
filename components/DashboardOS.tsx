@@ -83,30 +83,17 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
         {/* LOGO (MORPHING) */}
         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity w-40 relative h-10">
           {/* IMAGE 1: IKIGAI LOGO (Visible when Pathfinder & Not Morphing) */}
-          <img
-            src="/IkigaiLogo.png"
-            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-500 ${!isSpark && !isMorphing ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
-            alt="Ikigai Pathfinder"
-          />
-
-          {/* IMAGE 2: TRANSITION LOGO (Visible only during Morph) */}
-          <img
-            src="/TransitionLogo.png"
-            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-300 ${isMorphing ? 'opacity-100 scale-110 rotate-180' : 'opacity-0 scale-90 rotate-0'}`}
-            alt="Transforming..."
-          />
-
-          {/* IMAGE 3: SPARK LOGO (Visible when Spark & Not Morphing) */}
-          <img
-            src="/SparkLogo.png"
-            className={`absolute left-0 top-0 h-9 w-auto object-contain transition-all duration-500 ${isSpark && !isMorphing ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
-            alt="Ikigai Spark"
-          />
-
-          {/* TEXT LABEL (Fades with mode) */}
-          <span className={`absolute left-10 font-serif font-bold text-lg transition-all duration-500 ${isSpark ? 'text-slate-100 translate-x-1' : 'text-slate-900 translate-x-0'}`}>
-            {isSpark ? "Spark Studio" : "Pathfinder"}
+          {/* PATHFINDER TEXT LOGO */}
+          <span className={`absolute left-0 top-1/2 -translate-y-1/2 font-serif font-bold text-xl tracking-tight transition-all duration-500 ${!isSpark && !isMorphing ? 'opacity-100 scale-100 text-slate-900' : 'opacity-0 scale-90 blur-sm'}`}>
+            Pathfinder
           </span>
+
+          {/* SPARK TEXT LOGO */}
+          <span className={`absolute left-0 top-1/2 -translate-y-1/2 font-serif font-bold text-xl tracking-tight transition-all duration-500 ${isSpark && !isMorphing ? 'opacity-100 scale-100 text-slate-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'opacity-0 scale-90 blur-sm'}`}>
+            Spark Studio
+          </span>
+
+
         </div>
 
         {/* CENTRAL NAV TABS */}
