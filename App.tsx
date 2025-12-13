@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Step, IkigaiState, IkigaiResult, User } from './types';
 import WizardStep from './components/WizardStep';
 import DashboardOS from './components/DashboardOS';
+import { UpgradeModal } from './components/UpgradeModal';
 import HeroIkigai from './components/HeroIkigai';
 import LegalPages from './components/LegalPages';
 import SynthesisScreen from './components/SynthesisScreen';
@@ -26,6 +27,8 @@ const App = () => {
   const [proUserCount, setProUserCount] = useState(7);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [credits, setCredits] = useState(0);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Data State
   const [ikigaiData, setIkigaiData] = useState<IkigaiState>({
@@ -217,9 +220,11 @@ const App = () => {
       userRef.current = session.user.id;
 
       setUser({
+        id: session.user.id,
         name: session.user.user_metadata.full_name || 'User',
         email: session.user.email || '',
-        photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`
+        photoUrl: session.user.user_metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
+        isPro: isPro // Initial assumption, will be updated by fetchUserProfile
       });
 
       // RESTORE INPUTS
@@ -476,8 +481,7 @@ const App = () => {
     });
   };
 
-  // --- RENDER ---
-  const founderSlotsLeft = Math.max(0, 100 - proUserCount);
+
 
   if (isSessionLoading) return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -504,10 +508,15 @@ const App = () => {
           setIkigaiData={setIkigaiData}
           setResult={setResult}
           isPro={isPro}
-          onUpgrade={() => setShowSuccessModal(true)}
+          onUpgrade={() => setShowUpgradeModal(true)}
           onLogout={resetApp}
-          slotsLeft={founderSlotsLeft}
+          slotsLeft={credits} // Use credits instead of founderSlotsLeft
           isReadOnly={isReadOnly}
+        />
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          currentCredits={credits}
         />
         {showSuccessModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md animate-in fade-in">

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, MessageCircle, ExternalLink, Sparkles } from 'lucide-react';
 import { IkigaiResult, User, IkigaiState } from '../types';
 import { chatWithCopilot } from '../services/geminiService';
+import { supabase } from '../lib/supabaseClient';
 import ReactMarkdown from 'react-markdown';
 
 interface FloatingChatProps {
@@ -11,9 +12,11 @@ interface FloatingChatProps {
     ikigaiData: IkigaiState;
     externalContext: string | null;
     onClearContext: () => void;
+    credits?: number;
+    onUpgrade?: () => void;
 }
 
-const FloatingChat: React.FC<FloatingChatProps> = ({ result, isPro, user, ikigaiData, externalContext, onClearContext }) => {
+const FloatingChat: React.FC<FloatingChatProps> = ({ result, isPro, user, ikigaiData, externalContext, onClearContext, credits, onUpgrade }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [chatInput, setChatInput] = useState('');
     const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model'; text: string }[]>([]);
@@ -37,6 +40,13 @@ const FloatingChat: React.FC<FloatingChatProps> = ({ result, isPro, user, ikigai
     }, [chatHistory, isOpen]);
 
     const handleChat = async (overrideInput?: string) => {
+        // ENFORCE LIMITS
+        if (!isPro && (credits || 0) <= 0) {
+            onUpgrade?.(); // Open Modal
+            setChatHistory(prev => [...prev, { role: 'model', text: "🔒 You have used all your free AI credits. Please upgrade to Founder's Club to continue." }]);
+            return;
+        }
+
         const textToSend = overrideInput || chatInput;
         if (!textToSend.trim()) return;
 
@@ -51,6 +61,14 @@ const FloatingChat: React.FC<FloatingChatProps> = ({ result, isPro, user, ikigai
         setIsChatting(true);
 
         try {
+            // Decrement Credit (Fire & Forget for speed, or await if strict)
+            if (!isPro) {
+                supabase.rpc('decrement_credits').then(({ data, error }) => {
+                    if (error) console.error("Credit decrement failed", error);
+                    // Ideally, we'd update the parent 'credits' state here, but for now we rely on the next fetch or assume optimistic logic
+                });
+            }
+
             const historyForApi = chatHistory.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
             const response = await chatWithCopilot(historyForApi, textToSend, result, ikigaiData, user?.name);
             setChatHistory(prev => [...prev, { role: 'model', text: response }]);

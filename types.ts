@@ -7,9 +7,11 @@ export interface IkigaiState {
 }
 
 export interface User {
+  id?: string;
   name: string;
   email: string;
   photoUrl: string;
+  isPro?: boolean;
 }
 
 export enum Step {

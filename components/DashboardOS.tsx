@@ -179,8 +179,8 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             <button
               onClick={onLogout}
               className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-colors group ${isSpark
-                  ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  : 'text-slate-500 hover:text-red-600 hover:bg-red-50'
+                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-500 hover:text-red-600 hover:bg-red-50'
                 }`}
               title="Sign Out / Switch Account"
             >
@@ -201,7 +201,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
           <main className="flex-1 overflow-x-hidden overflow-y-auto relative pb-32">
             {activeTab === 'tasks' ? (
               <div className="max-w-7xl mx-auto h-full p-6">
-                <TaskBoard userId={user?.email || 'demo'} />
+                <TaskBoard userId={user?.id || 'demo'} />
               </div>
             ) : (
               <div className="max-w-5xl mx-auto flex flex-col items-center gap-12 p-6 md:p-12">
@@ -249,6 +249,8 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
                   ikigaiData={ikigaiData}
                   externalContext={launchpadContext}
                   onClearContext={() => setLaunchpadContext(null)}
+                  credits={slotsLeft}
+                  onUpgrade={onUpgrade}
                 />
               </>
             )}
