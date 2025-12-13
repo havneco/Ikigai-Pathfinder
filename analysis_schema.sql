@@ -26,3 +26,10 @@ create policy "Users can view their own analyses"
 create policy "Users can update their own analyses"
   on public.analyses for update
   using (auth.uid() = user_id);
+
+-- Policy: Allow public read access to analyses (for sharing logic to work)
+-- NOTE: In a real production app, you might want to scope this, 
+-- but for "Share Link" functionality where ID is the key, public select is often used.
+create policy "Enable read access for all users"
+  on public.analyses for select
+  using (true);

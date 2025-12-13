@@ -25,6 +25,7 @@ const App = () => {
   const [isPro, setIsPro] = useState(true);
   const [proUserCount, setProUserCount] = useState(7);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   // Data State
   const [ikigaiData, setIkigaiData] = useState<IkigaiState>({
@@ -158,6 +159,34 @@ const App = () => {
 
     const handleSession = async (session: any) => {
       if (!mounted) return;
+
+      // 1b. Check for Share Link (Public Access)
+      const params = new URLSearchParams(window.location.search);
+      const shareId = params.get('share_id');
+
+      if (shareId) {
+        console.log("Found Share ID, fetching public analysis...", shareId);
+        try {
+          const { data: analysis, error } = await supabase
+            .from('analyses')
+            .select('*')
+            .eq('user_id', shareId)
+            .order('last_updated', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (analysis && !error) {
+            setIkigaiData(analysis.ikigai_data);
+            setResult(analysis.result_data);
+            setStep(Step.RESULT); // Direct access
+            setIsReadOnly(true);
+            setIsSessionLoading(false);
+            return; // Stop further auth checks
+          }
+        } catch (err) {
+          console.error("Public fetch failed", err);
+        }
+      }
 
       // 1. No User
       if (!session?.user) {
@@ -476,6 +505,7 @@ const App = () => {
           onUpgrade={() => setShowSuccessModal(true)}
           onLogout={resetApp}
           slotsLeft={founderSlotsLeft}
+          isReadOnly={isReadOnly}
         />
         {showSuccessModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md animate-in fade-in">

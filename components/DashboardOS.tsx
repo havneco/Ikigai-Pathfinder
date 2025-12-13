@@ -5,7 +5,7 @@ import SparkDashboard from './SparkDashboard';
 import FloatingChat from './FloatingChat';
 import QuadInputWidget from './QuadInputWidget';
 import TaskBoard from './TaskBoard';
-import { Crown, LogOut, LayoutGrid, CheckSquare, Zap } from 'lucide-react';
+import { Crown, LogOut, LayoutGrid, CheckSquare, Zap, Share2 } from 'lucide-react';
 import { generateStructure, generateIdeaTitles, enrichIdea } from '../services/geminiService';
 
 interface DashboardOSProps {
@@ -18,10 +18,11 @@ interface DashboardOSProps {
   onUpgrade: () => void;
   onLogout: () => void;
   slotsLeft: number;
+  isReadOnly?: boolean;
 }
 
 const DashboardOS: React.FC<DashboardOSProps> = ({
-  user, result, ikigaiData, setIkigaiData, setResult, isPro, onUpgrade, onLogout, slotsLeft
+  user, result, ikigaiData, setIkigaiData, setResult, isPro, onUpgrade, onLogout, slotsLeft, isReadOnly = false
 }) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [activeTab, setActiveTab] = useState<'board' | 'tasks'>('board');
@@ -35,6 +36,17 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
     const timer = setTimeout(() => setIsMorphing(false), 500); // 500ms transition time
     return () => clearTimeout(timer);
   }, [viewMode]);
+
+  const handleShare = async () => {
+    if (!user?.id) return;
+    const shareUrl = `${window.location.protocol}//${window.location.host}?share_id=${user.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Share link copied to clipboard! Anyone with this link can view your analysis.");
+    } catch (err) {
+      console.error("Failed to copy", err);
+    }
+  };
 
   const handleReAnalysis = async () => {
     setIsAnalysing(true);
@@ -137,6 +149,18 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             </div>
           )}
 
+
+          {/* SHARE BUTTON */}
+          <button
+            onClick={handleShare}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border ${isSpark
+              ? 'bg-indigo-900/30 text-indigo-400 border-indigo-500/30 hover:bg-indigo-900/50'
+              : 'bg-white text-slate-500 border-slate-200 hover:text-indigo-600 hover:border-indigo-200'
+              }`}
+          >
+            <Share2 size={12} /> Share
+          </button>
+
           <span className={`hidden md:flex items-center gap-1 text-[10px] font-bold px-3 py-1 rounded-full border ${isSpark ? 'bg-amber-900/20 text-amber-500 border-amber-900/50' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
             <Crown size={12} fill="currentColor" /> FOUNDER
           </span>
@@ -147,68 +171,74 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             <LogOut size={16} />
           </button>
         </div>
-      </header>
+      </header >
 
       {/* CONTENT SWITCHER */}
-      {isSpark ? (
-        <div className="flex-1 overflow-hidden relative animate-in fade-in zoom-in-95 duration-300">
-          <SparkDashboard user={user} result={result} ikigaiData={ikigaiData} />
-        </div>
-      ) : (
-        <main className="flex-1 overflow-x-hidden overflow-y-auto relative pb-32">
-          {activeTab === 'tasks' ? (
-            <div className="max-w-7xl mx-auto h-full p-6">
-              <TaskBoard userId={user?.email || 'demo'} />
-            </div>
-          ) : (
-            <div className="max-w-5xl mx-auto flex flex-col items-center gap-12 p-6 md:p-12">
-              {/* SECTION 1: HERO (Venn + Headline) */}
-              <div className="w-full flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="w-full max-w-lg md:max-w-xl mb-8 transform hover:scale-105 transition-transform duration-500">
-                  <VennWidget result={result} mode={viewMode} />
-                </div>
-                <div className="max-w-3xl">
-                  <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">Your Ikigai Is</h2>
-                  <h1 className="text-3xl md:text-5xl font-serif font-bold text-slate-900 leading-tight mb-4">
-                    {result.statement || <span className="animate-pulse bg-slate-200 rounded text-transparent">Generating your purpose...</span>}
-                  </h1>
-                  <p className="text-lg md:text-xl text-slate-500 italic max-w-2xl mx-auto leading-relaxed">
-                    {result.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* SECTION 2: MARKET TABS */}
-              <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                <MarketWidget result={result} isPro={isPro} onUpgrade={onUpgrade} onOpenCopilot={setLaunchpadContext} />
-              </div>
-            </div>
-          )}
-
-          {/* FLOATERS For Pathfinder */}
-          <div className="fixed bottom-0 left-0 w-full z-40 px-4 pb-4 pointer-events-none">
-            <div className="max-w-3xl mx-auto pointer-events-auto shadow-2xl rounded-2xl overflow-hidden border border-slate-200">
-              <QuadInputWidget
-                data={ikigaiData}
-                onUpdate={setIkigaiData}
-                onRegenerate={handleReAnalysis}
-                isAnalysing={isAnalysing}
-                compact={true}
-              />
-            </div>
+      {
+        isSpark ? (
+          <div className="flex-1 overflow-hidden relative animate-in fade-in zoom-in-95 duration-300">
+            <SparkDashboard user={user} result={result} ikigaiData={ikigaiData} />
           </div>
-          <FloatingChat
-            result={result}
-            isPro={isPro}
-            user={user}
-            ikigaiData={ikigaiData}
-            externalContext={launchpadContext}
-            onClearContext={() => setLaunchpadContext(null)}
-          />
-        </main>
-      )}
+        ) : (
+          <main className="flex-1 overflow-x-hidden overflow-y-auto relative pb-32">
+            {activeTab === 'tasks' ? (
+              <div className="max-w-7xl mx-auto h-full p-6">
+                <TaskBoard userId={user?.email || 'demo'} />
+              </div>
+            ) : (
+              <div className="max-w-5xl mx-auto flex flex-col items-center gap-12 p-6 md:p-12">
+                {/* SECTION 1: HERO (Venn + Headline) */}
+                <div className="w-full flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="w-full max-w-lg md:max-w-xl mb-8 transform hover:scale-105 transition-transform duration-500">
+                    <VennWidget result={result} mode={viewMode} />
+                  </div>
+                  <div className="max-w-3xl">
+                    <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">Your Ikigai Is</h2>
+                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-slate-900 leading-tight mb-4">
+                      {result.statement || <span className="animate-pulse bg-slate-200 rounded text-transparent">Generating your purpose...</span>}
+                    </h1>
+                    <p className="text-lg md:text-xl text-slate-500 italic max-w-2xl mx-auto leading-relaxed">
+                      {result.description}
+                    </p>
+                  </div>
+                </div>
 
-    </div>
+                {/* SECTION 2: MARKET TABS */}
+                <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                  <MarketWidget result={result} isPro={isPro} onUpgrade={onUpgrade} onOpenCopilot={setLaunchpadContext} />
+                </div>
+              </div>
+            )}
+
+            {/* FLOATERS For Pathfinder */}
+            {!isReadOnly && (
+              <>
+                <div className="fixed bottom-0 left-0 w-full z-40 px-4 pb-4 pointer-events-none">
+                  <div className="max-w-3xl mx-auto pointer-events-auto shadow-2xl rounded-2xl overflow-hidden border border-slate-200">
+                    <QuadInputWidget
+                      data={ikigaiData}
+                      onUpdate={setIkigaiData}
+                      onRegenerate={handleReAnalysis}
+                      isAnalysing={isAnalysing}
+                      compact={true}
+                    />
+                  </div>
+                </div>
+                <FloatingChat
+                  result={result}
+                  isPro={isPro}
+                  user={user}
+                  ikigaiData={ikigaiData}
+                  externalContext={launchpadContext}
+                  onClearContext={() => setLaunchpadContext(null)}
+                />
+              </>
+            )}
+          </main>
+        )
+      }
+
+    </div >
   );
 };
 
