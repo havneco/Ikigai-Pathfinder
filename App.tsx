@@ -355,7 +355,7 @@ const App = () => {
           signals: [],
           community: [],
           competitors: [],
-          trendCurve: [20, 25, 30, 40, 35, 45, 50, 60, 55, 70, 80, 90]
+          trendCurve: [] // No dummy data
         },
         blueprint: { role: "Founder", whyYou: "Matching...", dayInLife: "Thinking...", theWedge: "Calculating...", executionPlan: [], valueLadder: { leadMagnet: "", frontendOffer: "", coreOffer: "" } },
         launchpad: []
@@ -427,7 +427,8 @@ const App = () => {
       // 5. Final Save (Auto-Save to Dashboard)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
-        const finalResult = { ...structure, marketIdeas: enrichedIdeas } as IkigaiResult;
+        // BUG FIX: Use 'finalIdeas' which contains the enriched data, NOT 'enrichedIdeas' (initial placeholders)
+        const finalResult = { ...structure, marketIdeas: finalIdeas } as IkigaiResult;
 
         console.log("Saving Analysis to DB...", finalResult);
         const { error } = await supabase.from('analyses').upsert({
@@ -436,6 +437,7 @@ const App = () => {
           result_data: finalResult,
           last_updated: new Date().toISOString()
         });
+
 
         if (error) console.error("Auto-save failed:", error);
       }
