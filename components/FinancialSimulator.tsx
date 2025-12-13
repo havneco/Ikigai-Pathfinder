@@ -77,13 +77,13 @@ const FinancialSimulator: React.FC<FinancialSimulatorProps> = ({ initialPrice, i
                             <span className="text-xl font-black text-slate-800 tabular-nums">{formatCurrency(price)}</span>
                         </div>
                         <input
-                            type="range" min={5} max={3000} step={5}
+                            type="range" min={5} max={Math.max(3000, initialPrice * 3)} step={5}
                             value={price} onChange={(e) => setPrice(Number(e.target.value))}
                             className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600 hover:bg-slate-200 transition-colors"
                         />
                         <div className="flex justify-between mt-2 text-[10px] text-slate-400 font-medium">
                             <span>Micro ($5)</span>
-                            <span>High Ticket ($3k)</span>
+                            <span>Scale (${formatCurrency(Math.max(3000, initialPrice * 3))})</span>
                         </div>
                     </div>
 
