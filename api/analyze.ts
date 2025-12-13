@@ -150,17 +150,23 @@ export default async function handler(req: any, res: any) {
 
       Generate the DEEP DATA (Validation, Blueprint, Launchpad).
       Use Google Search if needed to find REAL signals.
-      Refine the 'score' based on the search findings (adjusting for reality vs initial hypothesis).
-      Ensure 'trendCurve' contains 12 integers (0-100) representing the last year's trend.
-      REQUIREMENT: For 'Search Volume' and 'Growth', you MUST try to find a real data source URL. Include it in the \`source\` field.
-      REQUIREMENT: Find 2 major competitors. Identify their pricing and their specific weakness relative to this user's 'Good At' or 'Passion'.
+      Refine the 'score' based on the search findings (adjusting for real market saturation).
+      
+      CRITICAL: You must estimate realistic FINANCIAL MODELS.
+      - What is the typical pricing model (SaaS, One-Time, Retainer)?
+      - What is a realistic conversion rate (e.g. 0.01 for cold traffic, 0.05 for warm)?
+      - What are the low/high price points?
 
+      REQUIREMENT: For 'Search Volume', 'Growth', and 'Competitors', you MUST try to find a real data source URL. 
+      - If you find a real link, put it in valid URL format.
+      - If you CANNOT find a high-confidence real link, put "N/A". DO NOT HALLUCINATE LINKS.
+      
       OUTPUT FORMAT (JSON ONLY):
       {
         "score": { 
           "total": 85, "passion": 8, "talent": 9, "demand": 9, "profit": 9, "complexity": 3,
           "explanations": { 
-             "demand": "High search volume (22k/mo) for 'AI pricing' indicates strong pull.",
+             "demand": "High search volume (22k/mo) indicates strong pull.",
              "profit": "Software margins typically 80%+ with recurring revenue.",
              "talent": "Matches your 'Good At' sales and tech skills perfectly.",
              "complexity": "Requires moderate dev work but low capital intensity."

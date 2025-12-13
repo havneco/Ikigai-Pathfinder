@@ -71,6 +71,7 @@ export interface ValidationData {
   community: CommunitySignal[];
   competitors: { name: string; weakness: string; price: string; url?: string }[];
   revenuePotential: string; // "$$$" or "$1M-$5M ARR"
+  trendCurve?: number[]; // Added for TrendChart (12 months)
 }
 
 export interface MarketOpportunity {
@@ -83,6 +84,12 @@ export interface MarketOpportunity {
     whyYou: string;
     dayInLife: string;
     theWedge: string; // Renamed from mvpStep to emphasize "Entry Point"
+    pricing?: { // Added for Financial Simulator
+      model: string; // "SaaS", "One-Time", "Retainer"
+      minPrice: number;
+      maxPrice: number;
+      estimatedConversion: number; // 0.01 to 0.10
+    };
     valueLadder: {
       leadMagnet: string;
       frontendOffer: string;
