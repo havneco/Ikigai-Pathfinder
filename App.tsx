@@ -519,16 +519,25 @@ const App = () => {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-center items-center relative">
+      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-center items-center relative overflow-hidden">
         {step === Step.WELCOME && (
-          <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-700 space-y-8 flex flex-col items-center">
-            <div className="hover:scale-105 transition-transform duration-700"><HeroIkigai /></div>
-            <div className="-mt-10 relative z-10">
-              <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 text-slate-900">Discover Your Ikigai</h1>
-              <p className="text-xl text-slate-600 mb-10 leading-relaxed">Find your purpose with AI-driven market analysis.</p>
+          <>
+            {/* BACKGROUND HERO */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 pointer-events-none select-none opacity-20 scale-150 md:scale-125 origin-center">
+              <HeroIkigai className="w-[100vw] md:w-[1200px]" />
+            </div>
+
+            <div className="text-center max-w-4xl animate-in fade-in zoom-in duration-1000 space-y-8 flex flex-col items-center relative z-10 pt-32">
+              <div className="relative">
+                <h1 className="text-6xl md:text-8xl font-serif font-black mb-6 text-slate-900 tracking-tighter leading-none">Discover Your Ikigai</h1>
+                <p className="text-xl md:text-2xl text-slate-600 font-medium mb-10 leading-relaxed max-w-2xl mx-auto">
+                  The world's most advanced AI pathfinder for <span className="font-bold text-indigo-600">purpose</span> and <span className="font-bold text-amber-600">profit</span>.
+                </p>
+              </div>
+
               {user ? (
                 <div className="flex flex-col items-center gap-4">
-                  <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-10 py-4 bg-slate-900 text-white text-lg rounded-full font-medium hover:scale-105 transition-transform">
+                  <button onClick={() => result ? setStep(Step.RESULT) : handleNext()} className="px-12 py-5 bg-slate-900 text-white text-xl rounded-full font-bold hover:scale-105 transition-transform shadow-2xl shadow-indigo-200">
                     {result ? 'Enter Dashboard' : 'Start Analysis'}
                   </button>
                   {!result && ikigaiData.love.length > 0 && (
@@ -539,30 +548,29 @@ const App = () => {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-4">
-                  <button onClick={handleLogin} className="px-8 py-3 bg-white text-slate-800 border border-slate-200 shadow-md text-lg rounded-full font-medium hover:bg-slate-50 flex items-center gap-3 w-64 justify-center">
-                    {isLoggingIn ? <Loader2 className="animate-spin" /> : 'Sign in with Google'}
+                  <button onClick={handleLogin} className="px-10 py-4 bg-white text-slate-800 border-2 border-slate-100 shadow-xl text-lg rounded-full font-bold hover:bg-slate-50 hover:border-indigo-100 flex items-center gap-3 w-72 justify-center transition-all">
+                    {isLoggingIn ? <Loader2 className="animate-spin" /> : <><span className="text-xl">G</span> Sign in with Google</>}
                   </button>
                   {ikigaiData.love.length > 0 ? (
                     <button onClick={() => setStep(Step.PAID_FOR)} className="text-indigo-600 text-sm font-bold hover:underline flex items-center gap-1">
                       Resume Analysis <ArrowRight size={14} />
                     </button>
                   ) : (
-                    <button onClick={handleNext} className="text-slate-500 text-sm hover:underline">Continue as Guest</button>
+                    <button onClick={handleNext} className="text-slate-500 font-medium hover:text-slate-800 hover:underline transition-colors">Continue as Guest</button>
                   )}
                 </div>
               )}
             </div>
 
             {/* Legal Footer */}
-            <div className="mt-12 pt-8 border-t border-slate-200/50 flex flex-col items-center gap-3 text-xs text-slate-400">
+            <div className="absolute bottom-6 flex flex-col items-center gap-3 text-xs text-slate-400">
               <div className="flex gap-6">
                 <button onClick={() => { setPreviousStep(step); setStep(Step.PRIVACY); }} className="hover:text-slate-600 transition-colors">Privacy Policy</button>
                 <button onClick={() => { setPreviousStep(step); setStep(Step.TERMS); }} className="hover:text-slate-600 transition-colors">Terms of Service</button>
               </div>
-              <p>© {new Date().getFullYear()} Ikigai Pathfinder. All rights reserved.</p>
-              <a href="mailto:syewhite@gmail.com" className="hover:text-slate-600 transition-colors">Support: syewhite@gmail.com</a>
+              <p>© {new Date().getFullYear()} Havne Co. All rights reserved.</p>
             </div>
-          </div>
+          </>
         )
         }
 

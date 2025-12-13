@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { VennDiagram } from './VennDiagram';
 
-const HeroIkigai: React.FC = () => {
+const HeroIkigai: React.FC<{ className?: string }> = ({ className }) => {
   const [mode, setMode] = useState<'pathfinder' | 'spark'>('pathfinder');
 
   useEffect(() => {
@@ -14,7 +14,7 @@ const HeroIkigai: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-[350px] md:w-[450px] aspect-square flex items-center justify-center select-none">
+    <div className={`relative aspect-square flex items-center justify-center select-none ${className || 'w-[350px] md:w-[450px]'}`}>
       {/* Reusing the production Venn component for brand consistency */}
       <VennDiagram
         mode={mode}
