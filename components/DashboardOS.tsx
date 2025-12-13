@@ -29,6 +29,7 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
   const [viewMode, setViewMode] = useState<'pathfinder' | 'spark'>('pathfinder');
   const [launchpadContext, setLaunchpadContext] = useState<string | null>(null);
   const [isMorphing, setIsMorphing] = useState(false);
+  const [isPending, startTransition] = React.useTransition();
 
   // Logo Transition Logic
   useEffect(() => {
@@ -112,13 +113,13 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
         <div className="absolute left-1/2 -translate-x-1/2">
           <nav className={`flex p-1 rounded-full border transition-colors ${isSpark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
             <button
-              onClick={() => setViewMode('pathfinder')}
+              onClick={() => startTransition(() => setViewMode('pathfinder'))}
               className={`px-4 md:px-6 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all ${!isSpark ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Pathfinder
             </button>
             <button
-              onClick={() => isPro ? setViewMode('spark') : onUpgrade()}
+              onClick={() => isPro ? startTransition(() => setViewMode('spark')) : onUpgrade()}
               className={`flex items-center gap-1.5 px-4 md:px-6 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all ${isSpark ? 'bg-amber-500 text-slate-900 shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <Zap size={12} fill={isSpark ? "currentColor" : "none"} />
