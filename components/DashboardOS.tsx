@@ -165,11 +165,29 @@ const DashboardOS: React.FC<DashboardOSProps> = ({
             <Crown size={12} fill="currentColor" /> FOUNDER
           </span>
 
-          <img src={user?.photoUrl} alt="User" className={`w-8 h-8 rounded-full border ${isSpark ? 'border-slate-700' : 'border-slate-200'}`} />
+          {/* USER PROFILE & LOGOUT */}
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200/50">
+            <div className="relative group/profile">
+              <img
+                src={user?.photoUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+                alt="User"
+                className={`w-8 h-8 rounded-full border cursor-default ${isSpark ? 'border-indigo-500/50' : 'border-slate-200'}`}
+                title={user?.name}
+              />
+            </div>
 
-          <button onClick={onLogout} className="text-slate-400 hover:text-red-500">
-            <LogOut size={16} />
-          </button>
+            <button
+              onClick={onLogout}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-colors group ${isSpark
+                  ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-slate-500 hover:text-red-600 hover:bg-red-50'
+                }`}
+              title="Sign Out / Switch Account"
+            >
+              <LogOut size={14} className="group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
       </header >
 
