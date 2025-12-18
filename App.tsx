@@ -483,19 +483,8 @@ const App = () => {
 
 
 
-  if (isSessionLoading) return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <Loader2 size={48} className="animate-spin text-indigo-500 mb-4" />
-      <p className="text-slate-500 animate-pulse font-medium mb-8">Loading Productivity OS...</p>
-
-      <button
-        onClick={resetApp}
-        className="text-xs text-slate-400 hover:text-red-500 underline border border-transparent hover:border-red-100 p-2 rounded transition-colors"
-      >
-        Stuck? Reset Application
-      </button>
-    </div>
-  );
+  // NOTE: Removed blocking "Loading Productivity OS" screen for seamless UX
+  // Components now handle their own skeleton/loading states
 
   // === THE NEW OS VIEW ===
   if (step === Step.RESULT && result) {
