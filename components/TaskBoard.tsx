@@ -248,8 +248,8 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ userId }) => {
         </div>
         <div className="flex gap-3">
           <div className="flex bg-slate-100 p-1 rounded-lg">
-            <button onClick={() => setView('board')} className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'board' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Board</button>
-            <button onClick={() => setView('calendar')} className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Calendar</button>
+            <button onClick={() => React.startTransition(() => setView('board'))} className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'board' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Board</button>
+            <button onClick={() => React.startTransition(() => setView('calendar'))} className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Calendar</button>
           </div>
           <button
             onClick={() => setIsAdding(true)}

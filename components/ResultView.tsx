@@ -190,8 +190,8 @@ const TrendChart = ({ signals, data }: { signals?: any[], data?: number[] }) => 
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-          <TrendingUp size={14} /> 1 Year Trend
+        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full ${data && data.length > 0 ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 bg-slate-100'}`}>
+          {data && data.length > 0 ? <><Sparkles size={12} /> AI Forecast</> : <><TrendingUp size={14} /> Sample Trend</>}
         </div>
       </div>
 
