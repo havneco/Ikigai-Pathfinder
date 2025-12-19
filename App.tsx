@@ -553,11 +553,11 @@ const App = () => {
         {step === Step.WELCOME && (
           <>
             {/* BACKGROUND HERO */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[20%] z-0 pointer-events-none select-none origin-top">
-              <HeroIkigai className="w-[140vw] md:w-[1400px]" />
+            <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-0 pointer-events-none select-none origin-top opacity-60">
+              <HeroIkigai className="w-[140vw] md:w-[1200px]" />
             </div>
 
-            <div className="text-center max-w-4xl animate-in fade-in zoom-in duration-1000 space-y-8 flex flex-col items-center relative z-10 pt-32">
+            <div className="text-center max-w-4xl animate-in fade-in zoom-in duration-1000 space-y-8 flex flex-col items-center relative z-10 pt-20">
               <div className="relative">
                 <h1 className="text-6xl md:text-8xl font-serif font-black mb-6 text-slate-900 tracking-tighter leading-none">Discover Your Ikigai</h1>
                 <p className="text-xl md:text-2xl text-slate-600 font-medium mb-10 leading-relaxed max-w-2xl mx-auto">
